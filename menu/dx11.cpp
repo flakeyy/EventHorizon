@@ -56,7 +56,9 @@ auto dx11::init(const wchar_t * name, int win_w, int win_h) -> bool {
 
   // Setup Dear ImGui style
   ImGui::StyleColorsDark();
-  //ImGui::StyleColorsLight();
+
+  // Custom Event Horizon Styling
+  ImGuiStyle& style = ImGui::GetStyle();
 
   // Setup Platform/Renderer backends
   ImGui_ImplWin32_Init(hwnd);
@@ -79,7 +81,7 @@ auto dx11::init(const wchar_t * name, int win_w, int win_h) -> bool {
   //IM_ASSERT(font != nullptr);
 
   // Our state
-  bool show_demo_window = true;
+  bool show_demo_window = false;
   bool show_another_window = false;
   ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
@@ -114,7 +116,6 @@ auto dx11::init(const wchar_t * name, int win_w, int win_h) -> bool {
     ImGui_ImplWin32_NewFrame();
     ImGui::NewFrame();
 
-    // 1. Show the big demo window (Most of the sample code is in ImGui::ShowDemoWindow()! You can browse its code to learn more about Dear ImGui!).
     if (show_demo_window) {
       ImGui::ShowDemoWindow(&show_demo_window);
     }
