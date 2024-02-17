@@ -9,7 +9,6 @@
 #include "dx11.h"
 #include "fc2.hpp"
 
-
 using std::vector;
 using std::string;
 using std::thread;
@@ -78,6 +77,7 @@ void renderGeneralTab(), renderScriptsTab(), renderFC2TTab(), renderTeamsTab(), 
 showApplyButton(), refreshCache(), asyncCacheTasks(), updateActiveScripts(), updateActiveProjects();
 string getYMDAsFormatted(day day, month month, year year);
 
+// styles
 void setStyleEventHorizon() {
   // Event Horizon style by flakey from ImThemes
   ImGuiStyle& style = ImGui::GetStyle();
@@ -730,6 +730,7 @@ void selectStyle(int styleIndex) {
   }
 }
 
+// tabs
 void renderGeneralTab() {
   ImGui::Text( "Hello, %s!", session.username);
 
@@ -1146,6 +1147,7 @@ void renderSettingsTab() {
   }
 }
 
+// other functions
 string getYMDAsFormatted(day day, month month, year year) {
   string formattedString;
   int iDay = day.operator unsigned int(), iMonth = month.operator unsigned int(), iYear = year.operator int();
