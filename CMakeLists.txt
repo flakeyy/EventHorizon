@@ -15,6 +15,8 @@ add_executable(${PROJECT_NAME}
         menu/dx11.h
         menu/render.cpp
         fc2.hpp
+        json.hpp
 )
 target_link_libraries(${PROJECT_NAME} dwmapi d3d11 dxgi d3dcompiler)
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static -static-libgcc -static-libstdc++")
+set(CMAKE_CXX_FLAGS "-mwindows")
