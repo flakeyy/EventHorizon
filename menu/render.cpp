@@ -8,6 +8,7 @@
 #include "json.hpp"
 #include "dx11.h"
 #include "fc2.hpp"
+#include "data.h"
 
 using std::vector;
 using std::string;
@@ -22,8 +23,6 @@ using std::chrono::year_month_day;
 using std::chrono::high_resolution_clock;
 using json = nlohmann::json;
 
-// utility vars
-auto session = fc2::get_session();
 bool ranFirstTimeChecks = false, ready = true, asyncFinished = false, loadingFinished = false, scriptChangesMade = false, projectChangesMade = false;
 const char* themes[] = {"Event Horizon","Classic", "2003 Steam", "Comfy", "Dark", "Future Dark", "Cherry"};
 static const char* themeSelected = themes[0];
@@ -32,45 +31,7 @@ static const char* dateFormatSelected = dateFormats[0];
 static int scriptSelectedIndex = 0;
 static seconds duration(3);
 static auto startTimer = std::chrono::high_resolution_clock::now(), endTimer = startTimer + duration;
-
-// information vars
-// some of these could be const but who really needs them to be
-static string astrology, protection, session_directory, level;
-static int xp, perk_points, posts, score, unread_conversations, unread_alerts, session_started, session_expiry;
-year_month_day session_start_ymd, session_expiry_ymd;
-
-// perks
-static int perks_amount, owned_perks_amount, perk_purchased;
-static string roll_api_message;
-bool lootRolled;
-vector<int> perk_ids, owned_perk_ids;
-vector<string> perk_names, perk_descriptions;
-vector<bool> perk_is_owned;
-
-// scripts
-static int scripts_amount, enabled_scripts_amount;
-vector<string> script_names, script_ids, script_authors, script_last_updated, script_update_notes, enabled_script_ids;
-vector<year_month_day> script_last_updated_ymd;
-vector<bool> script_is_active;
-
-// fc2t projects
-static int projects_amount, enabled_projects_amount;
-vector<string> project_names, project_authors;
-vector<int> project_ids, project_last_updated, enabled_project_ids;
-vector<year_month_day> project_last_updated_ymd;
-vector<bool> project_is_active;
-
-// team scripts
-static int team_scripts_amount;
-vector<string> team_script_names, team_script_ids;
-
-// configuration
-static string configuration;
-
-// steam
-static int steam_amount;
-string steam_api_response;
-vector<string> steam_names, steam_personas;
+information data;
 
 // function declarations
 void renderGeneralTab(), renderScriptsTab(), renderFC2TTab(), renderTeamsTab(), renderConfigurationTab(), renderSteamTab(), renderPerksTab(), renderSettingsTab(),
@@ -732,46 +693,46 @@ void selectStyle(int styleIndex) {
 
 // tabs
 void renderGeneralTab() {
-  ImGui::Text( "Hello, %s!", session.username);
+  ImGui::Text( "Hello, %s!", data.member.username.c_str());
 
   ImGui::SeparatorText("User Information");
-  ImGui::Text("XP: %i", xp);
-  ImGui::Text("Perk Points %i", perk_points);
-  ImGui::Text("Posts: %i", posts);
-  ImGui::Text("Reaction Score: %i", score);
-  ImGui::Text("Unread Conversations: %i", unread_conversations);
-  ImGui::Text("Unread Alerts: %i", unread_alerts);
-  ImGui::Text("Level: %s", level.c_str());
-  ImGui::Text("Astrology: %s", astrology.c_str());
-  ImGui::Text("Protection: %s", protection.c_str());
+  ImGui::Text("XP: %i", data.member.xp);
+  ImGui::Text("Perk Points %i", data.member.perkPoints);
+  ImGui::Text("Posts: %i", data.member.posts);
+  ImGui::Text("Reaction Score: %i", data.member.score);
+  ImGui::Text("Unread Conversations: %i", data.member.unreadConversations);
+  ImGui::Text("Unread Alerts: %i", data.member.unreadAlerts);
+  ImGui::Text("Level: %s", data.member.level.c_str());
+  ImGui::Text("Astrology: %s", data.member.astrology.c_str());
+  ImGui::Text("Protection: %s", data.member.protection.c_str());
 
   ImGui::SeparatorText("Session");
-  ImGui::Text("Session Directory: %s", session_directory.c_str());
-  ImGui::Text("Session Started: %s", getYMDAsFormatted(session_start_ymd.day(), session_start_ymd.month(), session_start_ymd.year()).c_str());
-  ImGui::Text("Session Expiry: %s", getYMDAsFormatted(session_expiry_ymd.day(), session_expiry_ymd.month(), session_expiry_ymd.year()).c_str());
+  ImGui::Text("Session Directory: %s", data.session.directory.c_str());
+  ImGui::Text("Session Started: %s", getYMDAsFormatted(data.session.startYmd.day(), data.session.startYmd.month(), data.session.startYmd.year()).c_str());
+  ImGui::Text("Session Expiry: %s", getYMDAsFormatted(data.session.expiryYmd.day(), data.session.expiryYmd.month(), data.session.expiryYmd.year()).c_str());
 
-  if(!scriptChangesMade) {
-    ImGui::SeparatorText("Active Cloud Scripts");
-  }
-  else {
-    ImGui::SeparatorText("Active Cloud Scripts *");
+  ImGui::SeparatorText("Active Cloud Scripts");
+  if(scriptChangesMade) {
+    ImGui::SameLine();
+    ImGui::Text(" *");
   }
 
   if(!asyncFinished || !loadingFinished) {
     ImGui::Text("Fetching cloud scripts...");
   }
+  
   else {
     bool anyScriptsEnabled = false;
-    for (int i = 0; i < scripts_amount; i++) {
-      if (!script_is_active.at(i)) {
+    for (int i = 0; i < data.scripts.amount; i++) {
+      if (!data.scripts.isActive.at(i)) {
         continue;
       }
       anyScriptsEnabled = true;
-      if (ImGui::CollapsingHeader(script_names.at(i).c_str(), ImGuiTreeNodeFlags_None)) {
-        ImGui::Text("ID: %s", script_ids.at(i).c_str());
-        ImGui::Text("Author: %s", script_authors.at(i).c_str());
-        ImGui::Text("Last Update: %s", getYMDAsFormatted(script_last_updated_ymd.at(i).day(), script_last_updated_ymd.at(i).month(), script_last_updated_ymd.at(i).year()).c_str());
-        ImGui::Text("Update Notes: %s", script_update_notes.at(i).c_str());
+      if (ImGui::CollapsingHeader(data.scripts.names.at(i).c_str(), ImGuiTreeNodeFlags_None)) {
+        ImGui::Text("ID: %s", data.scripts.ids.at(i).c_str());
+        ImGui::Text("Author: %s", data.scripts.authors.at(i).c_str());
+        ImGui::Text("Last Update: %s", getYMDAsFormatted(data.scripts.lastUpdatedYmd.at(i).day(), data.scripts.lastUpdatedYmd.at(i).month(), data.scripts.lastUpdatedYmd.at(i).year()).c_str());
+        ImGui::Text("Update Notes: %s", data.scripts.updateNotes.at(i).c_str());
       }
     }
     if(!anyScriptsEnabled) {
@@ -779,11 +740,10 @@ void renderGeneralTab() {
     }
   }
 
-  if(!projectChangesMade) {
-    ImGui::SeparatorText("Active FC2T Projects");
-  }
-  else {
-    ImGui::SeparatorText("Active FC2T Projects *");
+  ImGui::SeparatorText("Active FC2T Projects");
+  if(projectChangesMade) {
+    ImGui::SameLine();
+    ImGui::Text(" *");
   }
 
   if(!asyncFinished || !loadingFinished) {
@@ -791,15 +751,15 @@ void renderGeneralTab() {
   }
   else {
     bool anyProjectsEnabled = false;
-    for (int i = 0; i < projects_amount; i++) {
-      if (!project_is_active.at(i)) {
+    for (int i = 0; i < data.projects.amount; i++) {
+      if (!data.projects.isActive.at(i)) {
         continue;
       }
       anyProjectsEnabled = true;
-      if (ImGui::CollapsingHeader(project_names.at(i).c_str(), ImGuiTreeNodeFlags_None)) {
-        ImGui::Text("ID: %i", project_ids.at(i));
-        ImGui::Text("Author: %s", project_authors.at(i).c_str());
-        ImGui::Text("Last Update: %s", getYMDAsFormatted(project_last_updated_ymd.at(i).day(), project_last_updated_ymd.at(i).month(), project_last_updated_ymd.at(i).year()).c_str());
+      if (ImGui::CollapsingHeader(data.projects.names.at(i).c_str(), ImGuiTreeNodeFlags_None)) {
+        ImGui::Text("ID: %i", data.projects.ids.at(i));
+        ImGui::Text("Author: %s", data.projects.authors.at(i).c_str());
+        ImGui::Text("Last Update: %s", getYMDAsFormatted(data.projects.lastUpdatedYmd.at(i).day(), data.projects.lastUpdatedYmd.at(i).month(), data.projects.lastUpdatedYmd.at(i).year()).c_str());
       }
     }
     if(!anyProjectsEnabled) {
@@ -810,31 +770,32 @@ void renderGeneralTab() {
   ImGui::SeparatorText("Abundance of Jupiter");
   json apiResponse;
   if(high_resolution_clock::now() > endTimer) {
-    lootRolled = false;
-    roll_api_message = "";
+    data.perks.lootRolled = false;
+    data.perks.rollApiMessage = "";
   }
+
   if(!asyncFinished || !loadingFinished) {
     ImGui::Text("Fetching perks...");
   }
   else {
     // getting the perk by a hardcoded index is extremely lazy and probably will break eventually. sucks.
-    if(perk_is_owned.at(10)) {
+    if(data.perks.isOwned.at(10)) {
       if(ImGui::Button("Roll Loot")) {
         startTimer = high_resolution_clock::now();
         endTimer = startTimer + duration;
         string apiCall = "rollLoot";
         apiResponse = json::parse(fc2::api(apiCall));
-        roll_api_message = apiResponse.at("message").get<string>();
+        data.perks.rollApiMessage = apiResponse.at("message").get<string>();
         printf("%s\n", apiResponse.dump().c_str());
-        lootRolled = true;
+        data.perks.lootRolled = true;
       }
     }
     else {
       ImGui::Text("You do not own the \"Abundance of Jupiter\" perk. See the perks tab to buy it.");
     }
   }
-  if(lootRolled) {
-    ImGui::Text("%s", roll_api_message.c_str());
+  if(data.perks.lootRolled) {
+    ImGui::Text("%s", data.perks.rollApiMessage.c_str());
   }
 }
 void renderScriptsTab() {
@@ -844,29 +805,28 @@ void renderScriptsTab() {
     return;
   }
 
-  if(!scriptChangesMade) {
-    ImGui::SeparatorText("Active Cloud Scripts");
-  }
-  else {
-    ImGui::SeparatorText("Active Cloud Scripts *");
+  ImGui::SeparatorText("Active Cloud Scripts");
+  if(scriptChangesMade) {
+    ImGui::SameLine();
+    ImGui::Text(" *");
   }
 
-  for(int i = 0; i < scripts_amount; i++) {
-    if(!script_is_active.at(i)) {
+  for(int i = 0; i < data.scripts.amount; i++) {
+    if(!data.scripts.isActive.at(i)) {
       continue;
     }
     anyScriptsEnabled = true;
-    string label = script_names.at(i) + "##active_scripts";
+    string label = data.scripts.names.at(i) + "##active_scripts";
     if(ImGui::CollapsingHeader(label.c_str(), ImGuiTreeNodeFlags_None)) {
-      bool is_active = script_is_active.at(i);
-      ImGui::Text("ID: %s", script_ids.at(i).c_str());
-      ImGui::Text("Author: %s", script_authors.at(i).c_str());
-      ImGui::Text("Last Update: %s", getYMDAsFormatted(script_last_updated_ymd.at(i).day(), script_last_updated_ymd.at(i).month(), script_last_updated_ymd.at(i).year()).c_str());
-      ImGui::Text("Update Notes: %s", script_update_notes.at(i).c_str());
+      bool is_active = data.scripts.isActive.at(i);
+      ImGui::Text("ID: %s", data.scripts.ids.at(i).c_str());
+      ImGui::Text("Author: %s", data.scripts.authors.at(i).c_str());
+      ImGui::Text("Last Update: %s", getYMDAsFormatted(data.scripts.lastUpdatedYmd.at(i).day(), data.scripts.lastUpdatedYmd.at(i).month(), data.scripts.lastUpdatedYmd.at(i).year()).c_str());
+      ImGui::Text("Update Notes: %s", data.scripts.updateNotes.at(i).c_str());
       ImGui::Checkbox("Enabled##active_scripts", &is_active);
-      if(is_active != script_is_active.at(i)) {
+      if(is_active != data.scripts.isActive.at(i)) {
         scriptChangesMade = true;
-        script_is_active.at(i) = is_active;
+        data.scripts.isActive.at(i) = is_active;
       }
     }
   }
@@ -885,18 +845,18 @@ void renderScriptsTab() {
     ImGui::Text("Fetching cloud scripts...");
   }
   else {
-    for (int i = 0; i < scripts_amount; i++) {
-      string label = script_names.at(i) + "##all_scripts";
+    for (int i = 0; i < data.scripts.amount; i++) {
+      string label = data.scripts.names.at(i) + "##all_scripts";
       if (ImGui::CollapsingHeader(label.c_str(), ImGuiTreeNodeFlags_None)) {
-        bool is_active = script_is_active.at(i);
-        ImGui::Text("ID: %s", script_ids.at(i).c_str());
-        ImGui::Text("Author: %s", script_authors.at(i).c_str());
-        ImGui::Text("Last Update: %s", getYMDAsFormatted(script_last_updated_ymd.at(i).day(), script_last_updated_ymd.at(i).month(), script_last_updated_ymd.at(i).year()).c_str());
-        ImGui::Text("Update Notes: %s", script_update_notes.at(i).c_str());
+        bool is_active = data.scripts.isActive.at(i);
+        ImGui::Text("ID: %s", data.scripts.ids.at(i).c_str());
+        ImGui::Text("Author: %s", data.scripts.authors.at(i).c_str());
+        ImGui::Text("Last Update: %s", getYMDAsFormatted(data.scripts.lastUpdatedYmd.at(i).day(), data.scripts.lastUpdatedYmd.at(i).month(), data.scripts.lastUpdatedYmd.at(i).year()).c_str());
+        ImGui::Text("Update Notes: %s", data.scripts.updateNotes.at(i).c_str());
         ImGui::Checkbox("Enabled##all_scripts", &is_active);
-        if(is_active != script_is_active.at(i)) {
+        if(is_active != data.scripts.isActive.at(i)) {
           scriptChangesMade = true;
-          script_is_active.at(i) = is_active;
+          data.scripts.isActive.at(i) = is_active;
         }
       }
     }
@@ -909,28 +869,27 @@ void renderFC2TTab() {
     return;
   }
 
-  if(!projectChangesMade) {
-    ImGui::SeparatorText("Active FC2T Projects");
-  }
-  else {
-    ImGui::SeparatorText("Active FC2T Projects *");
+  ImGui::SeparatorText("Active FC2T Projects");
+  if(projectChangesMade) {
+    ImGui::SameLine();
+    ImGui::Text(" *");
   }
 
-  for(int i = 0; i < projects_amount; i++) {
-    if(!project_is_active.at(i)) {
+  for(int i = 0; i < data.projects.amount; i++) {
+    if(!data.projects.isActive.at(i)) {
       continue;
     }
     anyProjectsEnabled = true;
-    string label = project_names.at(i) + "##active_projects";
+    string label = data.projects.names.at(i) + "##active_projects";
     if(ImGui::CollapsingHeader(label.c_str(), ImGuiTreeNodeFlags_None)) {
-      bool is_active = project_is_active.at(i);
-      ImGui::Text("ID: %i", project_ids.at(i));
-      ImGui::Text("Author: %s", project_authors.at(i).c_str());
-      ImGui::Text("Last Update: %s", getYMDAsFormatted(project_last_updated_ymd.at(i).day(), project_last_updated_ymd.at(i).month(), project_last_updated_ymd.at(i).year()).c_str());
+      bool is_active = data.projects.isActive.at(i);
+      ImGui::Text("ID: %i", data.projects.ids.at(i));
+      ImGui::Text("Author: %s", data.projects.authors.at(i).c_str());
+      ImGui::Text("Last Update: %s", getYMDAsFormatted(data.projects.lastUpdatedYmd.at(i).day(), data.projects.lastUpdatedYmd.at(i).month(), data.projects.lastUpdatedYmd.at(i).year()).c_str());
       ImGui::Checkbox("Enabled##active_projects", &is_active);
-      if(is_active != project_is_active.at(i)) {
+      if(is_active != data.projects.isActive.at(i)) {
         projectChangesMade = true;
-        project_is_active.at(i) = is_active;
+        data.projects.isActive.at(i) = is_active;
       }
     }
   }
@@ -949,17 +908,17 @@ void renderFC2TTab() {
     ImGui::Text("Fetching FC2T projects...");
   }
   else {
-    for (int i = 0; i < projects_amount; i++) {
-      string label = project_names.at(i) + "##all_projects";
+    for (int i = 0; i < data.projects.amount; i++) {
+      string label = data.projects.names.at(i) + "##all_projects";
       if (ImGui::CollapsingHeader(label.c_str(), ImGuiTreeNodeFlags_None)) {
-        bool is_active = project_is_active.at(i);
-        ImGui::Text("ID: %i", project_ids.at(i));
-        ImGui::Text("Author: %s", project_authors.at(i).c_str());
-        ImGui::Text("Last Update: %s", getYMDAsFormatted(project_last_updated_ymd.at(i).day(), project_last_updated_ymd.at(i).month(), project_last_updated_ymd.at(i).year()).c_str());
+        bool is_active = data.projects.isActive.at(i);
+        ImGui::Text("ID: %i", data.projects.ids.at(i));
+        ImGui::Text("Author: %s", data.projects.authors.at(i).c_str());
+        ImGui::Text("Last Update: %s", getYMDAsFormatted(data.projects.lastUpdatedYmd.at(i).day(), data.projects.lastUpdatedYmd.at(i).month(), data.projects.lastUpdatedYmd.at(i).year()).c_str());
         ImGui::Checkbox("Enabled##all_projects", &is_active);
-        if(is_active != project_is_active.at(i)) {
+        if(is_active != data.projects.isActive.at(i)) {
           projectChangesMade = true;
-          project_is_active.at(i) = is_active;
+          data.projects.isActive.at(i) = is_active;
         }
       }
     }
@@ -971,51 +930,50 @@ void renderTeamsTab() {
     return;
   }
 
-  if(!asyncFinished || !loadingFinished) {
-    ImGui::Text("Fetching team scripts...");
-    return;
-  }
-
-  if(team_scripts_amount <= 0) {
-    ImGui::Text("You are not an author or team member on any cloud scripts.");
-    return;
-  }
-
-  string scriptSelected = team_script_names.at(scriptSelectedIndex);
-
-  if(ImGui::BeginCombo("Team Scripts", scriptSelected.c_str(), ImGuiComboFlags_None)) {
-    for(int i = 0; i < team_scripts_amount; i++) {
-      bool is_selected = (scriptSelected == team_script_names[i]);
-      if(ImGui::Selectable(team_script_names[i].c_str(), is_selected)) {
-        scriptSelectedIndex = i;
-        scriptSelected = team_script_names[i];
-      }
-      if(is_selected) {
-        ImGui::SetItemDefaultFocus();
-      }
-    }
-    ImGui::EndCombo();
-  }
-
-  string luaData = "{\"value\": " + std::to_string(1) + "}";
-  auto scriptSource = fc2::call<string>("eh_get_team_script_source", FC2_LUA_TYPE_STRING, luaData);
-
-  if(ImGui::InputTextMultiline("script", const_cast<char *>(scriptSource.c_str()), 4096)) {
-
-  }
-
-
-  if(ImGui::Button("Post", ImVec2(180,20))) {
-    auto script_id = fc2::http::escape("253");
-    auto content = fc2::http::escape("");
-    auto notes = fc2::http::escape("notes");
-    // no i am not going to fix this probably ever, it works and that's all that matters.
-    string postUrl = "https://constelia.ai/api.php?key="; postUrl.append(session.license); postUrl.append("&cmd=updateScript");
-    auto post_response = fc2::http::post(postUrl, (std::format("script={}&content={}&notes={}", script_id, content, notes)));
-    //auto output = fc2::api("updateScript&" + std::format("script={}&content={}&notes={}", script_id, content, notes));
-    std::puts(post_response.c_str());
-    //std::puts(output.c_str());
-  }
+//  if(!asyncFinished || !loadingFinished) {
+//    ImGui::Text("Fetching team scripts...");
+//    return;
+//  }
+//
+//  if(team_data.scripts.amount <= 0) {
+//    ImGui::Text("You are not an author or team member on any cloud scripts.");
+//    return;
+//  }
+//
+//  string scriptSelected = team_script_names.at(scriptSelectedIndex);
+//
+//  if(ImGui::BeginCombo("Team Scripts", scriptSelected.c_str(), ImGuiComboFlags_None)) {
+//    for(int i = 0; i < team_data.scripts.amount; i++) {
+//      bool is_selected = (scriptSelected == team_script_names[i]);
+//      if(ImGui::Selectable(team_script_names[i].c_str(), is_selected)) {
+//        scriptSelectedIndex = i;
+//        scriptSelected = team_script_names[i];
+//      }
+//      if(is_selected) {
+//        ImGui::SetItemDefaultFocus();
+//      }
+//    }
+//    ImGui::EndCombo();
+//  }
+//
+//  string luaData = "{\"value\": " + std::to_string(1) + "}";
+//  auto scriptSource = fc2::call<string>("eh_get_team_script_source", FC2_LUA_TYPE_STRING, luaData);
+//
+//  if(ImGui::InputTextMultiline("script", const_cast<char *>(scriptSource.c_str()), 4096)) {
+//
+//  }
+//
+//  if(ImGui::Button("Post", ImVec2(180,20))) {
+//    auto script_id = fc2::http::escape("253");
+//    auto content = fc2::http::escape("");
+//    auto notes = fc2::http::escape("notes");
+//    // no i am not going to fix this probably ever, it works and that's all that matters.
+//    string postUrl = "https://constelia.ai/api.php?key="; postUrl.append(session.license); postUrl.append("&cmd=updateScript");
+//    auto post_response = fc2::http::post(postUrl, (std::format("script={}&content={}&notes={}", script_id, content, notes)));
+//    //auto output = fc2::api("updateScript&" + std::format("script={}&content={}&notes={}", script_id, content, notes));
+//    std::puts(post_response.c_str());
+//    //std::puts(output.c_str());
+//  }
 }
 void renderConfigurationTab() {
   if(true) {
@@ -1024,49 +982,48 @@ void renderConfigurationTab() {
     return;
   }
 
-  if(!ready) {
-    ImGui::Text("Refreshing Universe4, please wait.");
-    return;
-  }
-
-  if(ImGui::Button("Get Configuration", ImVec2(160, 20))) {
-    configuration = fc2::api("getConfiguration");
-    std::puts(configuration.c_str());
-
-  }
-  ImGui::SameLine();
+//  if(!ready) {
+//    ImGui::Text("Refreshing Universe4, please wait.");
+//    return;
+//  }
+//
+//  if(ImGui::Button("Get Configuration", ImVec2(160, 20))) {
+//    configuration = fc2::api("getConfiguration");
+//    std::puts(configuration.c_str());
+//
+//  }
+//  ImGui::SameLine();
 }
 void renderSteamTab() {
   if(true) {
     ImGui::Text("Steam functionality coming at a later date.");
     return;
   }
-
-  if(!asyncFinished || !loadingFinished) {
-    ImGui::Text("Fetching steam accounts...");
-    return;
-  }
-
-  ImGui::SeparatorText("Visible Steam Accounts");
-
-  for(int i = 0; i < steam_amount; i++) {
-    string label = steam_names.at(i) + "##steam";
-    if(ImGui::CollapsingHeader(label.c_str(), ImGuiTreeNodeFlags_None)) {
-      ImGui::Text("Nickname: %s", steam_personas.at(i).c_str());
-      //ImGui::Text("Steam ID: %s", steam_ids.at(i).c_str());
-      if(ImGui::Button("Hide Steam Account", ImVec2(200, 20))) {
-        steam_api_response = fc2::api(std::format("https://constelia.ai/api.php?key={}&cmd=hideSteamAccount&name={}", session.license, steam_names.at(i)));
-      }
-    }
-    if(steam_api_response.find(steam_names.at(i))) {
-      ImGui::Text(std::format("{} marked for removal.", steam_names.at(i)).c_str());
-    }
-  }
-
+//
+//  if(!asyncFinished || !loadingFinished) {
+//    ImGui::Text("Fetching steam accounts...");
+//    return;
+//  }
+//
+//  ImGui::SeparatorText("Visible Steam Accounts");
+//
+//  for(int i = 0; i < steam_amount; i++) {
+//    string label = steam_names.at(i) + "##steam";
+//    if(ImGui::CollapsingHeader(label.c_str(), ImGuiTreeNodeFlags_None)) {
+//      ImGui::Text("Nickname: %s", steam_personas.at(i).c_str());
+//      //ImGui::Text("Steam ID: %s", steam_ids.at(i).c_str());
+//      if(ImGui::Button("Hide Steam Account", ImVec2(200, 20))) {
+//        steam_api_response = fc2::api(std::format("https://constelia.ai/api.php?key={}&cmd=hideSteamAccount&name={}", session.license, steam_names.at(i)));
+//      }
+//    }
+//    if(steam_api_response.find(steam_names.at(i))) {
+//      ImGui::Text(std::format("{} marked for removal.", steam_names.at(i)).c_str());
+//    }
+//  }
 }
 void renderPerksTab() {
   if(high_resolution_clock::now() >= endTimer) {
-    perk_purchased = -1;
+    data.perks.purchased = -1;
   }
 
   if(!asyncFinished || !loadingFinished) {
@@ -1075,46 +1032,46 @@ void renderPerksTab() {
   }
 
   ImGui::SeparatorText("Owned Perks");
-  for (int i = 0; i < perks_amount; i++) {
-    if(!perk_is_owned.at(i)) {
+  for (int i = 0; i < data.perks.amount; i++) {
+    if(!data.perks.isOwned.at(i)) {
       continue;
     }
-    if(ImGui::CollapsingHeader(perk_names.at(i).c_str(), ImGuiTreeNodeFlags_None)) {
-      ImGui::Text("ID: %i", perk_ids.at(i));
-      ImGui::TextWrapped("Description: %s", perk_descriptions.at(i).c_str());
+    if(ImGui::CollapsingHeader(data.perks.names.at(i).c_str(), ImGuiTreeNodeFlags_None)) {
+      ImGui::Text("ID: %i", data.perks.ids.at(i));
+      ImGui::TextWrapped("Description: %s", data.perks.descriptions.at(i).c_str());
     }
   }
   ImGui::SeparatorText("Purchasable Perks");
-  for(int i = 0; i < perks_amount; i++) {
-    if(perk_is_owned.at(i)) {
+  for(int i = 0; i < data.perks.amount; i++) {
+    if(data.perks.isOwned.at(i)) {
       continue;
     }
-    if(ImGui::CollapsingHeader(perk_names.at(i).c_str(), ImGuiTreeNodeFlags_None)) {
-      ImGui::Text("ID: %i", perk_ids.at(i));
-      ImGui::TextWrapped("Description: %s", perk_descriptions.at(i).c_str());
-      string buttonLabel = "Purchase Perk"; buttonLabel.append("##"); buttonLabel.append(std::to_string(perk_ids.at(i)));
+    if(ImGui::CollapsingHeader(data.perks.names.at(i).c_str(), ImGuiTreeNodeFlags_None)) {
+      ImGui::Text("ID: %i", data.perks.ids.at(i));
+      ImGui::TextWrapped("Description: %s", data.perks.descriptions.at(i).c_str());
+      string buttonLabel = "Purchase Perk"; buttonLabel.append("##"); buttonLabel.append(std::to_string(data.perks.ids.at(i)));
       if(ImGui::Button(buttonLabel.c_str())) {
         startTimer = high_resolution_clock::now();
         endTimer = startTimer + duration;
         string apiCall = "buyPerk&id=";
-        apiCall.append(std::to_string(perk_ids.at(i)));
+        apiCall.append(std::to_string(data.perks.ids.at(i)));
         string apiResponse = fc2::api(apiCall);
         printf("%s\n", apiResponse.c_str());
         size_t found = apiResponse.find("perk added");
         if(found != string::npos) {
-          perk_purchased = i;
-          perk_is_owned.at(i) = true;
+          data.perks.purchased = i;
+          data.perks.isOwned.at(i) = true;
         }
         else {
-          perk_purchased = -2;
+          data.perks.purchased = -2;
         }
       }
     }
   }
-  if(perk_purchased >= 0) {
-    ImGui::Text("Perk %s purchased.", perk_names.at(perk_purchased).c_str());
+  if(data.perks.purchased >= 0) {
+    ImGui::Text("Perk %s purchased.", data.perks.names.at(data.perks.purchased).c_str());
   }
-  else if(perk_purchased == -2) {
+  else if(data.perks.purchased == -2) {
     ImGui::Text("Perk failed to purchase, you either don't have enough perk points or you already own it.");
   }
 }
@@ -1161,6 +1118,7 @@ string getYMDAsFormatted(day day, month month, year year) {
 
   return formattedString;
 }
+
 void showApplyButton() {
   if(asyncFinished && loadingFinished) {
     if(!ready) {
@@ -1182,90 +1140,32 @@ void showApplyButton() {
 }
 void refreshCache() {
   loadingFinished = false;
-  astrology = fc2::call<string>("eh_astrology", FC2_LUA_TYPE_STRING);
-  int protectionInt = session.protection;
-  int levelInt = session.level;
-  session_directory = fc2::call<string>("eh_directory", FC2_LUA_TYPE_STRING);
-  xp = fc2::call<int>("eh_xp", FC2_LUA_TYPE_INT);
-  perk_points = fc2::call<int>("eh_perk_points", FC2_LUA_TYPE_INT);
-  posts = fc2::call<int>("eh_posts", FC2_LUA_TYPE_INT);
-  score = fc2::call<int>("eh_score", FC2_LUA_TYPE_INT);
-  unread_conversations = fc2::call<int>("eh_unread_conversations", FC2_LUA_TYPE_INT);
-  unread_alerts = fc2::call<int>("eh_unread_alerts", FC2_LUA_TYPE_INT);
+  auto session = fc2::get_session();
+  data.reset();
+  json jsonData = json::parse(fc2::call<string>("eh_user", FC2_LUA_TYPE_STRING));
+  data.member.username = session.username;
+  data.member.license = session.license;
+  data.session.directory = session.directory;
+  data.member.protectionIndex = session.protection;
+  data.member.levelIndex = session.level;
+  data.member.getProtectionFromIndex();
+  data.member.getLevelFromIndex();
+  data.member.astrology = jsonData.at("astrology");
+  data.member.xp = jsonData.at("xp");
+  data.member.perkPoints = jsonData.at("perk_points");
+  data.member.posts = jsonData.at("posts");
+  data.member.score = jsonData.at("score");
+  data.member.unreadConversations = jsonData.at("unread_conversations");
+  data.member.unreadAlerts = jsonData.at("unread_alerts");
+  data.session.started = jsonData.at("session_started");
+  data.session.expiry = jsonData.at("session_expiry");
+  data.session.startYmd = std::chrono::floor<days>(system_clock::from_time_t(data.session.started));
+  data.session.expiryYmd = std::chrono::floor<days>(system_clock::from_time_t(data.session.expiry));
 
-  session_started = fc2::call<int>("eh_session_started", FC2_LUA_TYPE_INT);
-  session_start_ymd = std::chrono::floor<days>(system_clock::from_time_t(session_started));
-  session_expiry = fc2::call<int>("eh_session_expiry", FC2_LUA_TYPE_INT);
-  session_expiry_ymd = std::chrono::floor<days>(system_clock::from_time_t(session_expiry));
-
-  perks_amount = fc2::call<int>("eh_perks_amount", FC2_LUA_TYPE_INT);
-  owned_perks_amount = fc2::call<int>("eh_owned_perks_amount", FC2_LUA_TYPE_INT);
-  perk_ids = {};
-  perk_names = {};
-  perk_descriptions = {};
-  perk_is_owned = {};
-  owned_perk_ids = {};
-  perk_purchased = -1;
-
-  scripts_amount = fc2::call<int>("eh_scripts_amount", FC2_LUA_TYPE_INT);
-  script_names = {};
-  script_ids = {};
-  script_authors = {};
-  script_last_updated = {};
-  script_last_updated_ymd = {};
-  script_update_notes = {};
-  script_is_active = {};
-  enabled_scripts_amount = fc2::call<int>("eh_enabled_scripts_amount", FC2_LUA_TYPE_INT);
-  enabled_script_ids = {};
-
-  projects_amount = fc2::call<int>("eh_fc2t_amount", FC2_LUA_TYPE_INT);
-  project_names = {};
-  project_ids = {};
-  project_authors = {};
-  project_last_updated = {};
-  project_last_updated_ymd = {};
-  project_is_active = {};
-  enabled_projects_amount = fc2::call<int>("eh_enabled_fc2t_amount", FC2_LUA_TYPE_INT);
-  enabled_project_ids = {};
-
-  team_scripts_amount = fc2::call<int>("eh_team_scripts_amount", FC2_LUA_TYPE_INT);
-  team_script_names = {};
-
-  //steam_amount = fc2::call<int>("eh_steam_amount", FC2_LUA_TYPE_INT);
-  //steam_names = {};
-  //steam_personas = {};
-
-  // do protection thing
-  switch(protectionInt) {
-    case 0:
-      protection = "Standard";
-      break;
-    case 1:
-      protection = "Zombie/IPC";
-      break;
-    case 2:
-      protection = "Kernel";
-      break;
-    default:
-      protection = "mystery protection???";
-      break;
-  }
-
-  // do level thing
-  switch(levelInt) {
-    case 1:
-      level = "Member";
-      break;
-    case 2:
-      level = "Veteran Member";
-      break;
-    case 3:
-      level = "VIP";
-      break;
-    default:
-      level = "probably admin or some shit idk dawg";
-      break;
-  }
+  data.perks.amount = fc2::call<int>("eh_perks_amount", FC2_LUA_TYPE_INT);
+  data.perks.ownedAmount = fc2::call<int>("eh_owned_perks_amount", FC2_LUA_TYPE_INT);
+  data.scripts.amount = fc2::call<int>("eh_scripts_amount", FC2_LUA_TYPE_INT);
+  data.projects.amount = fc2::call<int>("eh_fc2t_amount", FC2_LUA_TYPE_INT);
 
   // populate scripts & projects
   thread async(asyncCacheTasks);
@@ -1273,74 +1173,56 @@ void refreshCache() {
 }
 void asyncCacheTasks() {
   asyncFinished = false;
-  for(int i = 0; i < perks_amount; i++) {
+  for(int i = 0; i < data.perks.amount; i++) {
     string luaData = "{\"value\": " + std::to_string(i) + "}";
-    perk_ids.push_back(fc2::call<int>("eh_get_perk_id", FC2_LUA_TYPE_INT, luaData));
-    perk_names.push_back(fc2::call<string>("eh_get_perk_name", FC2_LUA_TYPE_STRING, luaData));
-    perk_descriptions.push_back(fc2::call<string>("eh_get_perk_description", FC2_LUA_TYPE_STRING, luaData));
-    perk_is_owned.push_back(false);
+    json jsonData = json::parse(fc2::call<string>("eh_get_perk_json", FC2_LUA_TYPE_STRING, luaData));
+    data.perks.ids.push_back(jsonData.at("id"));
+    data.perks.names.push_back(jsonData.at("name"));
+    data.perks.descriptions.push_back(jsonData.at("description"));
+    data.perks.isOwned.push_back(false);
   }
 
-  for(int i = 0; i < owned_perks_amount; i++) {
+  for(int i = 0; i < data.perks.ownedAmount; i++) {
     string luaData = "{\"value\": " + std::to_string(i) + "}";
-    owned_perk_ids.push_back(fc2::call<int>("eh_get_owned_perk_id", FC2_LUA_TYPE_INT, luaData));
+    data.perks.ownedIds.push_back(fc2::call<int>("eh_get_owned_perk_id", FC2_LUA_TYPE_INT, luaData));
   }
 
-  for(int i = 0; i < owned_perks_amount; i++) {
-    auto it = std::find(perk_ids.begin(), perk_ids.end(), owned_perk_ids.at(i));
-    int index = it - perk_ids.begin();
-    perk_is_owned.at(index) = true;
+  for(int i = 0; i < data.perks.ownedAmount; i++) {
+    auto it = std::find(data.perks.ids.begin(), data.perks.ids.end(), data.perks.ownedIds.at(i));
+    int index = it - data.perks.ids.begin();
+    data.perks.isOwned.at(index) = true;
   }
 
-  for(int i = 0; i < scripts_amount; i++) {
+  // get information for all scripts
+  for(int i = 0; i < data.scripts.amount; i++) {
     // everything about scripts from a web api call is given as a string,
     // don't know why, don't really care, store everything as a string
     string luaData = "{\"value\": " + std::to_string(i) + "}";
-    script_names.push_back(fc2::call<string>("eh_get_script_name", FC2_LUA_TYPE_STRING, luaData));
-    script_ids.push_back(fc2::call<string>("eh_get_script_id", FC2_LUA_TYPE_STRING, luaData));
-    script_authors.push_back(fc2::call<string>("eh_get_script_author", FC2_LUA_TYPE_STRING, luaData));
-    script_last_updated.push_back(fc2::call<string>("eh_get_script_last_update_time", FC2_LUA_TYPE_STRING, luaData));
-    script_last_updated_ymd.push_back(std::chrono::floor<days>(system_clock::from_time_t(std::stoi(script_last_updated.at(i)))));
-    script_update_notes.push_back(fc2::call<string>("eh_get_script_update_notes", FC2_LUA_TYPE_STRING, luaData));
-    script_is_active.push_back(false);
+    json jsonData = json::parse(fc2::call<string>("eh_get_script_json", FC2_LUA_TYPE_STRING, luaData));
+    data.scripts.names.push_back(jsonData.at("name"));
+    data.scripts.ids.push_back(jsonData.at("id"));
+    data.scripts.authors.push_back(jsonData.at("author"));
+    data.scripts.lastUpdated.push_back(jsonData.at("last_update"));
+    data.scripts.lastUpdatedYmd.push_back(std::chrono::floor<days>(system_clock::from_time_t(std::stoi(data.scripts.lastUpdated.at(i)))));
+    data.scripts.updateNotes.push_back(jsonData.at("update_notes"));
+    data.scripts.isActive.push_back(jsonData.at("active"));
   }
 
-  for(int i = 0; i < enabled_scripts_amount; i++) {
+  for(int i = 0; i < data.projects.amount; i++) {
     string luaData = "{\"value\": " + std::to_string(i) + "}";
-    enabled_script_ids.push_back(fc2::call<string>("eh_get_enabled_script_id", FC2_LUA_TYPE_STRING, luaData));
+    json jsonData = json::parse(fc2::call<string>("eh_get_fc2t_json", FC2_LUA_TYPE_STRING, luaData));
+    data.projects.names.push_back(jsonData.at("name"));
+    data.projects.ids.push_back(jsonData.at("id"));
+    data.projects.authors.push_back(jsonData.at("author"));
+    data.projects.lastUpdated.push_back(jsonData.at("last_update"));
+    data.projects.lastUpdatedYmd.push_back(std::chrono::floor<days>(system_clock::from_time_t(data.projects.lastUpdated.at(i))));
+    data.projects.isActive.push_back(jsonData.at("active"));
   }
 
-  for(int i = 0; i < enabled_scripts_amount; i++) {
-    auto it = std::find(script_ids.begin(), script_ids.end(), enabled_script_ids.at(i));
-    int index = it - script_ids.begin();
-    script_is_active.at(index) = true;
-  }
-
-  for(int i = 0; i < projects_amount; i++) {
-    string luaData = "{\"value\": " + std::to_string(i) + "}";
-    project_names.push_back(fc2::call<string>("eh_get_fc2t_name", FC2_LUA_TYPE_STRING, luaData));
-    project_ids.push_back(fc2::call<int>("eh_get_fc2t_id", FC2_LUA_TYPE_INT, luaData));
-    project_authors.push_back(fc2::call<string>("eh_get_fc2t_author", FC2_LUA_TYPE_STRING, luaData));
-    project_last_updated.push_back(fc2::call<int>("eh_get_fc2t_last_update_time", FC2_LUA_TYPE_INT, luaData));
-    project_last_updated_ymd.push_back(std::chrono::floor<days>(system_clock::from_time_t(project_last_updated.at(i))));
-    project_is_active.push_back(false);
-  }
-
-  for(int i = 0; i < enabled_projects_amount; i++) {
-    string luaData = "{\"value\": " + std::to_string(i) + "}";
-    enabled_project_ids.push_back(fc2::call<int>("eh_get_enabled_fc2t_id", FC2_LUA_TYPE_INT, luaData));
-  }
-
-  for(int i = 0; i < enabled_projects_amount; i++) {
-    auto it = std::find(project_ids.begin(), project_ids.end(), enabled_project_ids.at(i));
-    int index = it - project_ids.begin();
-    project_is_active.at(index) = true;
-  }
-
-  /*for(int i = 0; i < team_scripts_amount; i++) {
+  /*for(int i = 0; i < team_data.scripts.amount; i++) {
     string luaData = "{\"value\": " + std::to_string(i) + "}";
     team_script_names.push_back(fc2::call<string>("eh_get_team_script_name", FC2_LUA_TYPE_STRING, luaData));
-    team_script_ids.push_back(fc2::call<string>("eh_get_team_script_id", FC2_LUA_TYPE_STRING, luaData));
+    team_data.scripts.ids.push_back(fc2::call<string>("eh_get_team_script_id", FC2_LUA_TYPE_STRING, luaData));
   }*/
 
   /*for(int i = 0; i < steam_amount; i++) {
@@ -1354,12 +1236,12 @@ void asyncCacheTasks() {
 }
 void updateActiveScripts() {
   string apiCall = "setMemberScripts&scripts=[";
-  for(int i = 0; i < scripts_amount; i++) {
-    if(script_is_active.at(i)) {
+  for(int i = 0; i < data.scripts.amount; i++) {
+    if(data.scripts.isActive.at(i)) {
       if(apiCall.back() != '[') {
         apiCall.append(",");
       }
-      apiCall.append(script_ids.at(i));
+      apiCall.append(data.scripts.ids.at(i));
     }
   }
   apiCall.append("]");
@@ -1367,22 +1249,18 @@ void updateActiveScripts() {
   printf("%s\n", apiResponse.c_str());
 }
 void updateActiveProjects() {
-  for(int i = 0; i < projects_amount; i++) {
-    bool is_active = false;
-    for(int j = 0; j < enabled_projects_amount; j++) {
-      auto it = std::find(project_ids.begin(), project_ids.end(), enabled_project_ids.at(j));
-      if(it != std::end(project_ids)) {
-        is_active = true;
+  string apiCall = "setMemberProjects&projects=[";
+  for(int i = 0; i < data.projects.amount; i++) {
+    if(data.projects.isActive.at(i)) {
+      if(apiCall.back() != '[') {
+        apiCall.append(",");
       }
+      apiCall.append(std::to_string(data.projects.ids.at(i)));
     }
-    if((is_active && project_is_active.at(i)) || (!is_active && !project_is_active.at(i))) {
-      printf("%s | %s, %s\n", "tried toggling project.",is_active ? "true" : "false", project_is_active.at(i) ? "true" : "false");
-      continue;
-    }
-    string apiCall = "toggleProjectStatus&id=" + std::to_string(project_ids.at(i));
-    string apiResponse = fc2::api(apiCall);
-    printf("%s\n", apiResponse.c_str());
   }
+  apiCall.append("]");
+  string apiResponse = fc2::api(apiCall);
+  printf("%s\n", apiResponse.c_str());
 }
 
 auto dx11::on_render(ImGuiIO &io, HWND window) -> void {
