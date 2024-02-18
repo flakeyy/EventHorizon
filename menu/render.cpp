@@ -28,7 +28,6 @@ const char* themes[] = {"Event Horizon","Classic", "2003 Steam", "Comfy", "Dark"
 static const char* themeSelected = themes[0];
 const char* dateFormats[] = {"MM/DD/YYYY", "DD/MM/YYYY"};
 static const char* dateFormatSelected = dateFormats[0];
-static int scriptSelectedIndex = 0;
 static seconds duration(3);
 static auto startTimer = std::chrono::high_resolution_clock::now(), endTimer = startTimer + duration;
 information data;
@@ -1118,7 +1117,6 @@ string getYMDAsFormatted(day day, month month, year year) {
 
   return formattedString;
 }
-
 void showApplyButton() {
   if(asyncFinished && loadingFinished) {
     if(!ready) {
@@ -1179,18 +1177,7 @@ void asyncCacheTasks() {
     data.perks.ids.push_back(jsonData.at("id"));
     data.perks.names.push_back(jsonData.at("name"));
     data.perks.descriptions.push_back(jsonData.at("description"));
-    data.perks.isOwned.push_back(false);
-  }
-
-  for(int i = 0; i < data.perks.ownedAmount; i++) {
-    string luaData = "{\"value\": " + std::to_string(i) + "}";
-    data.perks.ownedIds.push_back(fc2::call<int>("eh_get_owned_perk_id", FC2_LUA_TYPE_INT, luaData));
-  }
-
-  for(int i = 0; i < data.perks.ownedAmount; i++) {
-    auto it = std::find(data.perks.ids.begin(), data.perks.ids.end(), data.perks.ownedIds.at(i));
-    int index = it - data.perks.ids.begin();
-    data.perks.isOwned.at(index) = true;
+    data.perks.isOwned.push_back(jsonData.at("active"));
   }
 
   // get information for all scripts

@@ -67,47 +67,57 @@ local function refreshCache()
 		end
 		::continue::
 	end
-	
+
 	-- remove script code from scripts and add an "active" key
 	for _, allScripts in pairs(eh.cache.allScripts) do
 		allScripts["active"] = false
 		allScripts["script"] = nil
 	end
-	
-	if eh.cache.memberInfo.scripts == nil then goto skipScripts end
-	
-	-- set the active key to true if the script is enabled
-	for _, activeScripts in pairs(eh.cache.memberInfo.scripts) do
-		for _, allScripts in pairs(eh.cache.allScripts) do
-			if activeScripts.id == allScripts.id then
-				allScripts["active"] = true
-				goto continue
-			end
-		end
-		::continue::
+
+	-- set active to true if the script is enabled
+	if eh.cache.memberInfo.scripts ~= nil thenx
+        for _, activeScripts in pairs(eh.cache.memberInfo.scripts) do
+            for _, allScripts in pairs(eh.cache.allScripts) do
+                if activeScripts.id == allScripts.id then
+                    allScripts["active"] = true
+                    goto continue
+                end
+            end
+            ::continue::
+        end
 	end
-	
-	::skipScripts::
-	
-	-- same as we did for scripts, just for fc2t projects
+
 	for _, allProjects in pairs(eh.cache.allProjects) do
 		allProjects["active"] = false
 		allProjects["script"] = nil
 	end
 	
-	if eh.cache.memberInfo.fc2t == nil then goto skipProjects end
-	
-	for _, activeProjects in pairs(eh.cache.memberInfo.fc2t) do
-		for _, allProjects in pairs(eh.cache.allProjects) do
-			if activeProjects.id == allProjects.id then
-				allProjects["active"] = true
-				goto continue
-			end
-		end
-		::continue::
+	if eh.cache.memberInfo.fc2t ~= nil then
+        for _, activeProjects in pairs(eh.cache.memberInfo.fc2t) do
+            for _, allProjects in pairs(eh.cache.allProjects) do
+                if activeProjects.id == allProjects.id then
+                    allProjects["active"] = true
+                    goto continue
+                end
+            end
+            ::continue::
+        end
 	end
-	
-	::skipProjects::
+
+	for _, allPerks in pairs(eh.cache.allPerks) do
+	    allPerks["owned"] = false
+	end
+
+	if eh.cache.memberInfo.perks ~= nil then
+	    for _, ownedPerks in pairs(eh.cache.memberInfo.perks) do
+	        for _, allPerks in pairs(eh.cache.allPerks) do
+	            if ownedPerks.id == allPerks.id then
+	                allPerks["owned"] = true
+	                goto continue
+	        end
+	        ::continue::
+	    end
+    end
 	
 	fantasy.log("cache refreshed")
 end
@@ -138,10 +148,8 @@ function eh.on_team_call(identifier, data)
 	
 	-- perk stuff
 	elseif identifier == "eh_perks_amount" then return #eh.cache.allPerks
-	elseif identifier == "eh_owned_perks_amount" then if(eh.cache.memberInfo.perks) then return #eh.cache.memberInfo.perks end return 0
-	elseif identifier == "eh_get_owned_perk_id" then return eh.cache.memberInfo.perks[data.value + 1].id
-	elseif identifier == "eh_get_perk_json" then return json.encode(eh.cache.allPerks[data.value + 1])
-	
+    elseif identifier == "eh_get_perk_json" then return json.encode(eh.cache.allPerks[data.value + 1])
+
 	-- script stuff
 	elseif identifier == "eh_scripts_amount" then return #eh.cache.allScripts
 	elseif identifier == "eh_get_script_json" then return json.encode(eh.cache.allScripts[data.value + 1])
