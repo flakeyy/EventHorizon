@@ -5,8 +5,8 @@
 #include <unistd.h>
 #include <thread>
 #include "vulkan.h"
-#include "fmenu/lib/json.hpp"
-#include "fmenu/lib/fc2.hpp"
+#include "../lib/json.hpp"
+#include "../lib/fc2.hpp"
 #include "data.h"
 
 using std::vector;
@@ -29,7 +29,7 @@ const char* dateFormats[] = {"MM/DD/YYYY", "DD/MM/YYYY"};
 static const char* dateFormatSelected = dateFormats[0];
 static seconds duration(3);
 static auto startTimer = std::chrono::high_resolution_clock::now(), endTimer = startTimer + duration;
-information data;
+Information data;
 
 // function declarations
 void renderGeneralTab(), renderScriptsTab(), renderFC2TTab(), renderTeamsTab(), renderConfigurationTab(), renderSteamTab(), renderPerksTab(), renderSettingsTab(),
@@ -1160,7 +1160,6 @@ void refreshCache() {
   data.session.expiryYmd = std::chrono::floor<days>(system_clock::from_time_t(data.session.expiry));
 
   data.perks.amount = fc2::call<int>("eh_perks_amount", FC2_LUA_TYPE_INT);
-  data.perks.ownedAmount = fc2::call<int>("eh_owned_perks_amount", FC2_LUA_TYPE_INT);
   data.scripts.amount = fc2::call<int>("eh_scripts_amount", FC2_LUA_TYPE_INT);
   data.projects.amount = fc2::call<int>("eh_fc2t_amount", FC2_LUA_TYPE_INT);
 

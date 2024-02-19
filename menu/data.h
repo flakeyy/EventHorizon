@@ -4,7 +4,7 @@
 #include <chrono>
 #include <vector>
 
-struct member {
+struct Member {
   int levelIndex;
   int protectionIndex;
   int xp;
@@ -54,7 +54,7 @@ struct member {
   }
 };
 
-struct session {
+struct Session {
   int started;
   int expiry;
   std::string directory;
@@ -62,9 +62,8 @@ struct session {
   std::chrono::year_month_day expiryYmd;
 };
 
-struct perks {
+struct Perks {
   int amount;
-  int ownedAmount;
   int purchased;
   bool lootRolled;
   std::string rollApiMessage;
@@ -75,7 +74,7 @@ struct perks {
   std::vector<bool> isOwned;
 };
 
-struct scripts {
+struct Scripts {
   int amount;
   std::vector<std::string> names;
   std::vector<std::string> authors;
@@ -86,7 +85,7 @@ struct scripts {
   std::vector<bool> isActive;
 };
 
-struct projects {
+struct Projects {
   int amount;
   std::vector<std::string> names;
   std::vector<std::string> authors;
@@ -96,12 +95,12 @@ struct projects {
   std::vector<bool> isActive;
 };
 
-struct information {
-  member member;
-  session session;
-  perks perks;
-  scripts scripts;
-  projects projects;
+struct Information {
+  Member member;
+  Session session;
+  Perks perks;
+  Scripts scripts;
+  Projects projects;
 
   void reset() {
     member = {};
