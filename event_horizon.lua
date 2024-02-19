@@ -75,7 +75,7 @@ local function refreshCache()
 	end
 
 	-- set active to true if the script is enabled
-	if eh.cache.memberInfo.scripts ~= nil thenx
+	if eh.cache.memberInfo.scripts ~= nil then
         for _, activeScripts in pairs(eh.cache.memberInfo.scripts) do
             for _, allScripts in pairs(eh.cache.allScripts) do
                 if activeScripts.id == allScripts.id then
@@ -114,6 +114,7 @@ local function refreshCache()
 	            if ownedPerks.id == allPerks.id then
 	                allPerks["owned"] = true
 	                goto continue
+				end
 	        end
 	        ::continue::
 	    end
