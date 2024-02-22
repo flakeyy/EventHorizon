@@ -5,6 +5,7 @@
 #include <vector>
 
 struct Member {
+  int buddy;
   int levelIndex;
   int protectionIndex;
   int xp;
