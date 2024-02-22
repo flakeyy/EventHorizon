@@ -19,11 +19,12 @@ local eh = {
 		last_refresh = os.time(),
 	
 		memberInfo = nil,
-		user = {},
+		forumPosts = nil,
 		allProjects = nil,
 		allPerks = nil,
 		allScripts = nil,
 		steam = nil,
+		user = {},
 		teamScripts = {},
 
 	}
@@ -43,6 +44,9 @@ local function refreshCache()
 	
 	apiCall = fantasy.session:api("getAllScripts")
 	eh.cache.allScripts = json.decode(apiCall)
+	
+	apiCall = fantasy.session:api("getForumPosts&count=10")
+	eh.cache.forumPosts = json.decode(apiCall)
 	
 	eh.cache.user = {}
 	eh.cache.teamScripts = {}
@@ -120,6 +124,15 @@ local function refreshCache()
 	    end
     end
 	
+	for _, post in pairs(eh.cache.forumPosts) do
+		post["discussion_state"] = nil
+		post["node_id"] = nil
+		post["post_date"] = nil
+		post["post_id"] = nil
+		post["thread_id"] = nil
+		post["message"] = nil
+	end
+	
 	fantasy.log("cache refreshed")
 end
 
@@ -158,6 +171,10 @@ function eh.on_team_call(identifier, data)
 	-- fc2t stuff
 	elseif identifier == "eh_fc2t_amount" then return #eh.cache.allProjects
 	elseif identifier == "eh_get_fc2t_json" then return json.encode(eh.cache.allProjects[data.value + 1])
+	
+	-- post stuff
+	elseif identifier == "eh_posts_amount" then return #eh.cache.forumPosts
+	elseif identifier == "eh_get_post_json" then return json.encode(eh.cache.forumPosts[data.value + 1])
 	
 	-- -- team stuff
 	-- elseif identifier == "eh_team_scripts_amount" then return #eh.cache.teamScripts

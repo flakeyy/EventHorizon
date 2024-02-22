@@ -95,12 +95,20 @@ struct Projects {
   std::vector<bool> isActive;
 };
 
+struct Posts {
+  int amount;
+  std::vector<std::string> username;
+  std::vector<std::string> title;
+  std::vector<std::string> elapsed;
+};
+
 struct Information {
   Member member;
   Session session;
   Perks perks;
   Scripts scripts;
   Projects projects;
+  Posts posts;
 
   void reset() {
     member = {};
@@ -108,6 +116,7 @@ struct Information {
     perks = {};
     scripts = {};
     projects = {};
+    posts = {};
   }
 };
 

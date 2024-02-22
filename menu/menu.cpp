@@ -692,6 +692,9 @@ void selectStyle(int styleIndex) {
 // tabs
 void renderGeneralTab() {
   ImGui::Text( "Hello, %s!", data.member.username.c_str());
+  ImGui::Separator();
+
+  ImGui::Columns(2, nullptr);
 
   ImGui::SeparatorText("User Information");
   ImGui::Text("XP: %i", data.member.xp);
@@ -720,7 +723,6 @@ void renderGeneralTab() {
   if(!asyncFinished || !loadingFinished) {
     ImGui::Text("Fetching cloud scripts...");
   }
-  
   else {
     bool anyScriptsEnabled = false;
     for (int i = 0; i < data.scripts.amount; i++) {
@@ -732,7 +734,7 @@ void renderGeneralTab() {
         ImGui::Text("ID: %s", data.scripts.ids.at(i).c_str());
         ImGui::Text("Author: %s", data.scripts.authors.at(i).c_str());
         ImGui::Text("Last Update: %s", getYMDAsFormatted(data.scripts.lastUpdatedYmd.at(i).day(), data.scripts.lastUpdatedYmd.at(i).month(), data.scripts.lastUpdatedYmd.at(i).year()).c_str());
-        ImGui::Text("Update Notes: %s", data.scripts.updateNotes.at(i).c_str());
+        ImGui::TextWrapped("Update Notes: %s", data.scripts.updateNotes.at(i).c_str());
       }
     }
     if(!anyScriptsEnabled) {
@@ -799,6 +801,21 @@ void renderGeneralTab() {
   if(data.perks.lootRolled) {
     ImGui::Text("%s", data.perks.rollApiMessage.c_str());
   }
+  ImGui::NextColumn();
+
+  ImGui::SeparatorText("Recent Forum Posts");
+  if(!asyncFinished || !loadingFinished) {
+    ImGui::Text("Fetching recent posts...");
+  }
+  else {
+    for(int i = 0; i < data.posts.amount; i++) {
+      ImGui::Text("Author: %s", data.posts.username.at(i).c_str());
+      ImGui::Text("Thread: %s", data.posts.title.at(i).c_str());
+      ImGui::Text("Time Since Post: %s", data.posts.elapsed.at(i).c_str());
+      ImGui::SeparatorText("");
+    }
+  }
+  ImGui::Columns();
 }
 void renderScriptsTab() {
   bool anyScriptsEnabled = false;
@@ -806,6 +823,7 @@ void renderScriptsTab() {
     ImGui::Text("Fetching cloud scripts...");
     return;
   }
+  ImGui::Columns(2, nullptr);
 
   if(scriptChangesMade) {
     ImGui::SeparatorText("Active Cloud Scripts *");
@@ -825,7 +843,7 @@ void renderScriptsTab() {
       ImGui::Text("ID: %s", data.scripts.ids.at(i).c_str());
       ImGui::Text("Author: %s", data.scripts.authors.at(i).c_str());
       ImGui::Text("Last Update: %s", getYMDAsFormatted(data.scripts.lastUpdatedYmd.at(i).day(), data.scripts.lastUpdatedYmd.at(i).month(), data.scripts.lastUpdatedYmd.at(i).year()).c_str());
-      ImGui::Text("Update Notes: %s", data.scripts.updateNotes.at(i).c_str());
+      ImGui::TextWrapped("Update Notes: %s", data.scripts.updateNotes.at(i).c_str());
       ImGui::Checkbox("Enabled##active_scripts", &is_active);
       if(is_active != data.scripts.isActive.at(i)) {
         scriptChangesMade = true;
@@ -842,6 +860,8 @@ void renderScriptsTab() {
     showApplyButton();
   }
 
+  ImGui::NextColumn();
+
   ImGui::SeparatorText("All Cloud Scripts");
 
   if(!asyncFinished || !loadingFinished) {
@@ -855,7 +875,7 @@ void renderScriptsTab() {
         ImGui::Text("ID: %s", data.scripts.ids.at(i).c_str());
         ImGui::Text("Author: %s", data.scripts.authors.at(i).c_str());
         ImGui::Text("Last Update: %s", getYMDAsFormatted(data.scripts.lastUpdatedYmd.at(i).day(), data.scripts.lastUpdatedYmd.at(i).month(), data.scripts.lastUpdatedYmd.at(i).year()).c_str());
-        ImGui::Text("Update Notes: %s", data.scripts.updateNotes.at(i).c_str());
+        ImGui::TextWrapped("Update Notes: %s", data.scripts.updateNotes.at(i).c_str());
         ImGui::Checkbox("Enabled##all_scripts", &is_active);
         if(is_active != data.scripts.isActive.at(i)) {
           scriptChangesMade = true;
@@ -864,6 +884,7 @@ void renderScriptsTab() {
       }
     }
   }
+  ImGui::Columns();
 }
 void renderFC2TTab() {
   bool anyProjectsEnabled = false;
@@ -871,6 +892,8 @@ void renderFC2TTab() {
     ImGui::Text("Fetching FC2T projects...");
     return;
   }
+
+  ImGui::Columns(2, nullptr);
 
   if(projectChangesMade) {
     ImGui::SeparatorText("Active FC2T Projects *");
@@ -906,6 +929,8 @@ void renderFC2TTab() {
     showApplyButton();
   }
 
+  ImGui::NextColumn();
+
   ImGui::SeparatorText("All FC2T Projects");
 
   if(!asyncFinished || !loadingFinished) {
@@ -927,6 +952,7 @@ void renderFC2TTab() {
       }
     }
   }
+  ImGui::Columns();
 }
 void renderTeamsTab() {
   if(true) {
@@ -1035,6 +1061,8 @@ void renderPerksTab() {
     return;
   }
 
+  ImGui::Columns(2, nullptr);
+
   ImGui::SeparatorText("Owned Perks");
   for (int i = 0; i < data.perks.amount; i++) {
     if(!data.perks.isOwned.at(i)) {
@@ -1045,6 +1073,9 @@ void renderPerksTab() {
       ImGui::TextWrapped("Description: %s", data.perks.descriptions.at(i).c_str());
     }
   }
+
+  ImGui::NextColumn();
+
   ImGui::SeparatorText("Purchasable Perks");
   for(int i = 0; i < data.perks.amount; i++) {
     if(data.perks.isOwned.at(i)) {
@@ -1078,6 +1109,7 @@ void renderPerksTab() {
   else if(data.perks.purchased == -2) {
     ImGui::Text("Perk failed to purchase, you either don't have enough perk points or you already own it.");
   }
+  ImGui::Columns();
 }
 void renderSettingsTab() {
   ImGui::SeparatorText("Event Horizon Settings");
@@ -1168,6 +1200,7 @@ void refreshCache() {
   data.perks.amount = fc2::call<int>("eh_perks_amount", FC2_LUA_TYPE_INT);
   data.scripts.amount = fc2::call<int>("eh_scripts_amount", FC2_LUA_TYPE_INT);
   data.projects.amount = fc2::call<int>("eh_fc2t_amount", FC2_LUA_TYPE_INT);
+  data.posts.amount = fc2::call<int>("eh_posts_amount", FC2_LUA_TYPE_INT);
 
   // populate scripts & projects
   thread async(asyncCacheTasks);
@@ -1208,6 +1241,14 @@ void asyncCacheTasks() {
     data.projects.lastUpdated.push_back(jsonData.at("last_update"));
     data.projects.lastUpdatedYmd.push_back(std::chrono::floor<days>(system_clock::from_time_t(data.projects.lastUpdated.at(i))));
     data.projects.isActive.push_back(jsonData.at("active"));
+  }
+
+  for(int i = 0; i < data.posts.amount; i++) {
+    string luaData = "{\"value\": " + std::to_string(i) + "}";
+    json jsonData = json::parse(fc2::call<string>("eh_get_post_json", FC2_LUA_TYPE_STRING, luaData));
+    data.posts.username.push_back(jsonData.at("username"));
+    data.posts.title.push_back(jsonData.at("title"));
+    data.posts.elapsed.push_back(jsonData.at("elapsed"));
   }
 
   /*for(int i = 0; i < team_data.scripts.amount; i++) {
@@ -1252,6 +1293,37 @@ void updateActiveProjects() {
   apiCall.append("]");
   string apiResponse = fc2::api(apiCall);
   printf("%s\n", apiResponse.c_str());
+}
+void DrawSplitter(int split_vertically, float thickness, float* size0, float* size1, float min_size0, float min_size1) {
+  ImVec2 backup_pos = ImGui::GetCursorPos();
+  if (split_vertically)
+    ImGui::SetCursorPosY(backup_pos.y + *size0);
+  else
+    ImGui::SetCursorPosX(backup_pos.x + *size0);
+
+  ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0,0,0,0));
+  ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0,0,0,0));          // We don't draw while active/pressed because as we move the panes the splitter button will be 1 frame late
+  ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.6f,0.6f,0.6f,0.10f));
+  ImGui::Button("##Splitter", ImVec2(!split_vertically ? thickness : -1.0f, split_vertically ? thickness : -1.0f));
+  ImGui::PopStyleColor(3);
+
+  ImGui::SetItemAllowOverlap(); // This is to allow having other buttons OVER our splitter.
+
+  if (ImGui::IsItemActive())
+  {
+    float mouse_delta = split_vertically ? ImGui::GetIO().MouseDelta.y : ImGui::GetIO().MouseDelta.x;
+
+    // Minimum pane size
+    if (mouse_delta < min_size0 - *size0)
+      mouse_delta = min_size0 - *size0;
+    if (mouse_delta > *size1 - min_size1)
+      mouse_delta = *size1 - min_size1;
+
+    // Apply resize
+    *size0 += mouse_delta;
+    *size1 -= mouse_delta;
+  }
+  ImGui::SetCursorPos(backup_pos);
 }
 
 auto vulkan::on_render(ImGuiIO &io) -> void {
@@ -1314,23 +1386,28 @@ auto vulkan::on_render(ImGuiIO &io) -> void {
     ImGui::EndTabItem();
   }
 
-  // Teams Tab
-  if(ImGui::BeginTabItem("Teams")) {
-    renderTeamsTab();
-    ImGui::EndTabItem();
-  }
+  //if(ImGui::BeginTabItem("Buddy")) {
+  //  renderBuddyTab();
+  //  ImGui::EndTabItem();
+  //
 
-  // Configuration Tab
-  if(ImGui::BeginTabItem("Configuration")) {
-    renderConfigurationTab();
-    ImGui::EndTabItem();
-  }
-
-  // Steam Tab
-  if(ImGui::BeginTabItem("Steam")) {
-    renderSteamTab();
-    ImGui::EndTabItem();
-  }
+//  // Teams Tab
+//  if(ImGui::BeginTabItem("Teams")) {
+//    renderTeamsTab();
+//    ImGui::EndTabItem();
+//  }
+//
+//  // Configuration Tab
+//  if(ImGui::BeginTabItem("Configuration")) {
+//    renderConfigurationTab();
+//    ImGui::EndTabItem();
+//  }
+//
+//  // Steam Tab
+//  if(ImGui::BeginTabItem("Steam")) {
+//    renderSteamTab();
+//    ImGui::EndTabItem();
+//  }
 
   // Settings Tab
   if(ImGui::BeginTabItem("Settings")) {
