@@ -7,5 +7,5 @@
 * Make Teams, Steam, and Configuration functionality work (api request too big or something)
 * Settings persistence (probably thru Lua configuration)
 * <s>Clean this shit up, use structs/classes and add more functions & comments.</s> structs added, still can do with some work
-* <s>Change to Vulkan renderer for Linux support.</s> Done. Haven't tested Linux yet.
+* <s>Change to Vulkan renderer for Linux support.</s> Done.
 * Probably other stuff I'm not remembering.
