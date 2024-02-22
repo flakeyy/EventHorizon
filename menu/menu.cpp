@@ -33,7 +33,7 @@ Information data;
 
 // function declarations
 void renderGeneralTab(), renderScriptsTab(), renderFC2TTab(), renderTeamsTab(), renderConfigurationTab(), renderSteamTab(), renderPerksTab(), renderSettingsTab(),
-showApplyButton(), refreshCache(), asyncCacheTasks(), updateActiveScripts(), updateActiveProjects();
+showApplyButton(), refreshCache(), asyncCacheTasks(), getMemberAsBuddy(string username), updateActiveScripts(), updateActiveProjects();
 string getYMDAsFormatted(day day, month month, year year);
 
 // styles
@@ -1111,6 +1111,32 @@ void renderPerksTab() {
   }
   ImGui::Columns();
 }
+void renderBuddyTab() {
+  // only show if member is a buddy or VIP
+  if(data.member.buddy == 0 || data.member.levelIndex >= 3) {
+    ImGui::Text("This tab is for buddies & VIP only.");
+    return;
+  }
+
+  static char username[64];
+
+  ImGui::Columns(2, nullptr);
+
+  ImGui::Text("Member Username");
+  ImGui::InputTextWithHint("##username", "username here", username, sizeof(username));
+
+  if(ImGui::Button("Get Member", ImVec2(200, 40))) {
+    getMemberAsBuddy(username);
+  }
+
+  ImGui::NextColumn();
+
+  for(int i = 0; i < data.buddyHistory.username.size(); i++) {
+    ImGui::Text(data.buddyHistory.username.at(i).c_str());
+  }
+
+  ImGui::Columns();
+}
 void renderSettingsTab() {
   ImGui::SeparatorText("Event Horizon Settings");
   if(ImGui::BeginCombo("Theme", themeSelected, ImGuiComboFlags_None)) {
@@ -1267,6 +1293,11 @@ void asyncCacheTasks() {
   asyncFinished = true;
   loadingFinished = true;
 }
+void getMemberAsBuddy(string username) {
+  string luaData = "{\"value\": \"" + username + "\"}";
+  json jsonData = json::parse(fc2::call<string>("eh_get_member_as_buddy", FC2_LUA_TYPE_STRING, luaData));
+  data.buddyHistory.username.push_back(jsonData.at("username"));
+}
 void updateActiveScripts() {
   string apiCall = "setMemberScripts&scripts=[";
   for(int i = 0; i < data.scripts.amount; i++) {
@@ -1356,10 +1387,12 @@ auto vulkan::on_render(ImGuiIO &io) -> void {
     ImGui::EndTabItem();
   }
 
-  //if(ImGui::BeginTabItem("Buddy")) {
-  //  renderBuddyTab();
-  //  ImGui::EndTabItem();
-  //
+  // Buddy Tab
+  if(ImGui::BeginTabItem("Buddy")) {
+    renderBuddyTab();
+    ImGui::EndTabItem();
+  }
+
 
 //  // Teams Tab
 //  if(ImGui::BeginTabItem("Teams")) {

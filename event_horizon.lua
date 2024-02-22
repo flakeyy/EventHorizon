@@ -61,6 +61,7 @@ local function refreshCache()
 	eh.cache.user["unread_alerts"] = eh.cache.memberInfo.unread_alerts
 	eh.cache.user["session_started"] = eh.cache.memberInfo.session["started"]
 	eh.cache.user["session_expiry"] = eh.cache.memberInfo.session["expire"]
+	eh.cache.user["buddy"] = eh.cache.memberInfo.buddy
 	
 	for _, script in pairs(eh.cache.allScripts) do
 		for _, teamMember in pairs(script.team) do
@@ -136,10 +137,43 @@ local function refreshCache()
 	fantasy.log("cache refreshed")
 end
 
+local function getMemberAsBuddy(username)
+	
+	local apiUrl = "getMemberAsBuddy&name="..username.."&no_beauty"
+	local apiCall = fantasy.session:api(apiUrl)
+	apiCall = json.decode(apiCall)
+
+	local member = {}
+
+	member["username"] = apiCall.username
+	member["register_date"] = apiCall.register_date
+	member["last_activity"] = apiCall.last_activity
+	member["session_expiry"] = apiCall.session["expire"]
+	member["posts"] = apiCall.posts
+	member["score"] = apiCall.score
+	member["protection"] = apiCall.protection
+
+	for _, script in pairs(apiCall["scripts"]) do
+		-- remove all script information except name & id, that's all we want
+		script["script"] = nil
+		script["update_notes"] = nil
+		script["elapsed"] = nil
+		script["author"] = nil
+		script["last_update"] = nil
+		script["last_bonus"] = nil
+		script["software"] = nil
+		script["library"] = nil
+		script["forums"] = nil
+		script["core"] = nil
+		script["team"] = nil
+	end
+
+	member["scripts"] = apiCall["scripts"]
+	return json.encode(member)
+end
+
 function eh.on_loaded()
-	
 	refreshCache()
-	
 end
 
 function eh.on_worker()
@@ -158,7 +192,7 @@ function eh.on_team_call(identifier, data)
 	if identifier == "eh_ready" then return true
 	elseif identifier == "eh_refresh" then modules.scripts:reset(true)
 	elseif identifier == "eh_refresh_cache" then refreshCache()
-	elseif identifier == "eh_user" then   return json.encode(eh.cache.user)
+	elseif identifier == "eh_user" then return json.encode(eh.cache.user)
 	
 	-- perk stuff
 	elseif identifier == "eh_perks_amount" then return #eh.cache.allPerks
@@ -175,6 +209,9 @@ function eh.on_team_call(identifier, data)
 	-- post stuff
 	elseif identifier == "eh_posts_amount" then return #eh.cache.forumPosts
 	elseif identifier == "eh_get_post_json" then return json.encode(eh.cache.forumPosts[data.value + 1])
+	
+	-- buddy stuff
+	elseif identifier == "eh_get_member_as_buddy" then return getMemberAsBuddy(data.value)
 	
 	-- -- team stuff
 	-- elseif identifier == "eh_team_scripts_amount" then return #eh.cache.teamScripts

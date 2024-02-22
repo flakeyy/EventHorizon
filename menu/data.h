@@ -103,6 +103,17 @@ struct Posts {
   std::vector<std::string> elapsed;
 };
 
+struct BuddyHistory {
+  std::vector<std::string> username;
+  std::vector<int> registerDate;
+  std::vector<int> lastActivity;
+  std::vector<int> sessionExpiry;
+  std::vector<int> posts;
+  std::vector<int> score;
+  std::vector<int> protectionIndex;
+  std::vector<Scripts> scripts;
+};
+
 struct Information {
   Member member;
   Session session;
@@ -110,6 +121,7 @@ struct Information {
   Scripts scripts;
   Projects projects;
   Posts posts;
+  BuddyHistory buddyHistory;
 
   void reset() {
     member = {};
