@@ -709,10 +709,12 @@ void renderGeneralTab() {
   ImGui::Text("Session Started: %s", getYMDAsFormatted(data.session.startYmd.day(), data.session.startYmd.month(), data.session.startYmd.year()).c_str());
   ImGui::Text("Session Expiry: %s", getYMDAsFormatted(data.session.expiryYmd.day(), data.session.expiryYmd.month(), data.session.expiryYmd.year()).c_str());
 
-  ImGui::SeparatorText("Active Cloud Scripts");
+
   if(scriptChangesMade) {
-    ImGui::SameLine();
-    ImGui::Text(" *");
+    ImGui::SeparatorText("Active Cloud Scripts *");
+  }
+  else {
+    ImGui::SeparatorText("Active Cloud Scripts");
   }
 
   if(!asyncFinished || !loadingFinished) {
@@ -738,10 +740,12 @@ void renderGeneralTab() {
     }
   }
 
-  ImGui::SeparatorText("Active FC2T Projects");
+
   if(projectChangesMade) {
-    ImGui::SameLine();
-    ImGui::Text(" *");
+    ImGui::SeparatorText("Active FC2T Projects *");
+  }
+  else {
+    ImGui::SeparatorText("Active FC2T Projects");
   }
 
   if(!asyncFinished || !loadingFinished) {
@@ -803,10 +807,11 @@ void renderScriptsTab() {
     return;
   }
 
-  ImGui::SeparatorText("Active Cloud Scripts");
   if(scriptChangesMade) {
-    ImGui::SameLine();
-    ImGui::Text(" *");
+    ImGui::SeparatorText("Active Cloud Scripts *");
+  }
+  else {
+    ImGui::SeparatorText("Active Cloud Scripts");
   }
 
   for(int i = 0; i < data.scripts.amount; i++) {
@@ -867,10 +872,11 @@ void renderFC2TTab() {
     return;
   }
 
-  ImGui::SeparatorText("Active FC2T Projects");
   if(projectChangesMade) {
-    ImGui::SameLine();
-    ImGui::Text(" *");
+    ImGui::SeparatorText("Active FC2T Projects *");
+  }
+  else {
+    ImGui::SeparatorText("Active FC2T Projects");
   }
 
   for(int i = 0; i < data.projects.amount; i++) {
