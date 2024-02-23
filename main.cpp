@@ -2,7 +2,7 @@
 
 int main() {
 
-  vulkan::init("Event Horizon", 1200, 1000);
+  vulkan::init("Event Horizon", 1200, 900);
 
   return 0;
 }
