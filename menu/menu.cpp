@@ -691,6 +691,11 @@ void selectStyle(int styleIndex) {
 
 // tabs
 void renderGeneralTab() {
+  if(!loadingFinished) {
+    ImGui::Text("Event Horizon is loading...");
+    return;
+  }
+
   ImGui::Text( "Hello, %s!", data.member.username.c_str());
   ImGui::Separator();
 
@@ -720,7 +725,7 @@ void renderGeneralTab() {
     ImGui::SeparatorText("Active Cloud Scripts");
   }
 
-  if(!asyncFinished || !loadingFinished) {
+  if(!asyncFinished) {
     ImGui::Text("Fetching cloud scripts...");
   }
   else {
@@ -750,7 +755,7 @@ void renderGeneralTab() {
     ImGui::SeparatorText("Active FC2T Projects");
   }
 
-  if(!asyncFinished || !loadingFinished) {
+  if(!asyncFinished) {
     ImGui::Text("Fetching FC2T projects...");
   }
   else {
@@ -778,7 +783,7 @@ void renderGeneralTab() {
     data.perks.rollApiMessage = "";
   }
 
-  if(!asyncFinished || !loadingFinished) {
+  if(!asyncFinished) {
     ImGui::Text("Fetching perks...");
   }
   else {
@@ -804,7 +809,7 @@ void renderGeneralTab() {
   ImGui::NextColumn();
 
   ImGui::SeparatorText("Recent Forum Posts");
-  if(!asyncFinished || !loadingFinished) {
+  if(!asyncFinished) {
     ImGui::Text("Fetching recent posts...");
   }
   else {
@@ -819,7 +824,7 @@ void renderGeneralTab() {
 }
 void renderScriptsTab() {
   bool anyScriptsEnabled = false;
-  if(!asyncFinished || !loadingFinished) {
+  if(!asyncFinished) {
     ImGui::Text("Fetching cloud scripts...");
     return;
   }
@@ -864,7 +869,7 @@ void renderScriptsTab() {
 
   ImGui::SeparatorText("All Cloud Scripts");
 
-  if(!asyncFinished || !loadingFinished) {
+  if(!asyncFinished) {
     ImGui::Text("Fetching cloud scripts...");
   }
   else {
@@ -888,7 +893,7 @@ void renderScriptsTab() {
 }
 void renderFC2TTab() {
   bool anyProjectsEnabled = false;
-  if(!asyncFinished || !loadingFinished) {
+  if(!asyncFinished) {
     ImGui::Text("Fetching FC2T projects...");
     return;
   }
@@ -933,7 +938,7 @@ void renderFC2TTab() {
 
   ImGui::SeparatorText("All FC2T Projects");
 
-  if(!asyncFinished || !loadingFinished) {
+  if(!asyncFinished) {
     ImGui::Text("Fetching FC2T projects...");
   }
   else {
@@ -1056,7 +1061,7 @@ void renderPerksTab() {
     data.perks.purchased = -1;
   }
 
-  if(!asyncFinished || !loadingFinished) {
+  if(!asyncFinished) {
     ImGui::Text("Fetching perks...");
     return;
   }
@@ -1228,6 +1233,15 @@ void showApplyButton() {
 }
 void refreshCache() {
   loadingFinished = false;
+
+  // load everything async
+  thread async(asyncCacheTasks);
+  async.detach();
+}
+
+void asyncCacheTasks() {
+  asyncFinished = false;
+
   auto session = fc2::get_session();
   data.reset();
   json jsonData = json::parse(fc2::call<string>("eh_user", FC2_LUA_TYPE_STRING));
@@ -1256,12 +1270,8 @@ void refreshCache() {
   data.projects.amount = fc2::call<int>("eh_fc2t_amount", FC2_LUA_TYPE_INT);
   data.posts.amount = fc2::call<int>("eh_posts_amount", FC2_LUA_TYPE_INT);
 
-  // populate scripts & projects
-  thread async(asyncCacheTasks);
-  async.detach();
-}
-void asyncCacheTasks() {
-  asyncFinished = false;
+  loadingFinished = true;
+
   for(int i = 0; i < data.perks.amount; i++) {
     string luaData = "{\"value\": " + std::to_string(i) + "}";
     json jsonData = json::parse(fc2::call<string>("eh_get_perk_json", FC2_LUA_TYPE_STRING, luaData));
@@ -1317,8 +1327,8 @@ void asyncCacheTasks() {
     steam_personas.push_back(fc2::call<string>("eh_get_steam_persona", FC2_LUA_TYPE_STRING, luaData));
   }*/
 
+
   asyncFinished = true;
-  loadingFinished = true;
 }
 void getMemberAsBuddy(string username) {
   string luaData = "{\"value\": \"" + username + "\"}";
@@ -1395,7 +1405,7 @@ auto vulkan::on_render(ImGuiIO &io) -> void {
   }
 
   if(!ranFirstTimeChecks) {
-    fc2::call<bool>("eh_refresh_cache", FC2_LUA_TYPE_NONE);
+    //fc2::call<bool>("eh_refresh_cache", FC2_LUA_TYPE_NONE);
     refreshCache();
     setStyleEventHorizon();
     ranFirstTimeChecks = true;
