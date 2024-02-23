@@ -1118,21 +1118,48 @@ void renderBuddyTab() {
     return;
   }
 
+  if(high_resolution_clock::now() >= endTimer) {
+    data.buddyHistory.failed = false;
+  }
+
   static char username[64];
 
   ImGui::Columns(2, nullptr);
 
-  ImGui::Text("Member Username");
+  ImGui::SeparatorText("Member Username");
   ImGui::InputTextWithHint("##username", "username here", username, sizeof(username));
 
   if(ImGui::Button("Get Member", ImVec2(200, 40))) {
     getMemberAsBuddy(username);
   }
 
+  if(data.buddyHistory.failed) {
+    ImGui::Text("Couldn't get member '%s' as buddy. They are probably a Veteran or VIP.", username);
+  }
+
   ImGui::NextColumn();
+  ImGui::SeparatorText("History");
 
   for(int i = 0; i < data.buddyHistory.username.size(); i++) {
-    ImGui::Text(data.buddyHistory.username.at(i).c_str());
+    if(ImGui::CollapsingHeader(data.buddyHistory.username.at(i).c_str(), ImGuiTreeNodeFlags_None)) {
+      ImGui::Text("Register Date: %s", getYMDAsFormatted(data.buddyHistory.registerYmd.at(i).day(), data.buddyHistory.registerYmd.at(i).month(),  data.buddyHistory.registerYmd.at(i).year()).c_str());
+      ImGui::Text("Last Activity: %s", getYMDAsFormatted(data.buddyHistory.activityYmd.at(i).day(), data.buddyHistory.activityYmd.at(i).month(),  data.buddyHistory.activityYmd.at(i).year()).c_str());
+      ImGui::Text("Session Expiry: %s", getYMDAsFormatted(data.buddyHistory.expiryYmd.at(i).day(), data.buddyHistory.expiryYmd.at(i).month(),  data.buddyHistory.expiryYmd.at(i).year()).c_str());
+      ImGui::Text("Posts: %s", std::to_string(data.buddyHistory.posts.at(i)).c_str());
+      ImGui::Text("Score: %s", std::to_string(data.buddyHistory.score.at(i)).c_str());
+      ImGui::Text("Protection: %s", data.buddyHistory.protection.at(i).c_str());
+      if(ImGui::CollapsingHeader("Scripts", ImGuiTreeNodeFlags_None)) {
+        ImGui::Text("Total Scripts Enabled: %i", data.buddyHistory.scripts.at(i).amount);
+        if(data.buddyHistory.scripts.at(i).amount <= 0) {
+          continue;
+        }
+        ImGui::SeparatorText("");
+        for(int j = 0; j < data.buddyHistory.scripts.at(i).amount; j++) {
+          ImGui::Text("%s, ID: %s", data.buddyHistory.scripts.at(i).names.at(j).c_str(), data.buddyHistory.scripts.at(i).ids.at(j).c_str());
+        }
+      }
+      ImGui::SeparatorText("");
+    }
   }
 
   ImGui::Columns();
@@ -1296,7 +1323,40 @@ void asyncCacheTasks() {
 void getMemberAsBuddy(string username) {
   string luaData = "{\"value\": \"" + username + "\"}";
   json jsonData = json::parse(fc2::call<string>("eh_get_member_as_buddy", FC2_LUA_TYPE_STRING, luaData));
+
+  if(jsonData.at("message") != "success") {
+    startTimer = high_resolution_clock::now();
+    endTimer = startTimer + duration;
+    data.buddyHistory.failed = true;
+    return;
+  }
+
   data.buddyHistory.username.push_back(jsonData.at("username"));
+  data.buddyHistory.registerDate.push_back(jsonData.at("register_date"));
+  data.buddyHistory.registerYmd.push_back(std::chrono::floor<days>(system_clock::from_time_t(data.buddyHistory.registerDate.back())));
+  data.buddyHistory.lastActivity.push_back(jsonData.at("last_activity"));
+  data.buddyHistory.activityYmd.push_back(std::chrono::floor<days>(system_clock::from_time_t(data.buddyHistory.lastActivity.back())));
+  data.buddyHistory.sessionExpiry.push_back(jsonData.at("session_expiry"));
+  data.buddyHistory.expiryYmd.push_back(std::chrono::floor<days>(system_clock::from_time_t(data.buddyHistory.sessionExpiry.back())));
+  data.buddyHistory.posts.push_back(jsonData.at("posts"));
+  data.buddyHistory.score.push_back(jsonData.at("score"));
+  data.buddyHistory.protectionIndex.push_back(jsonData.at("protection"));
+  data.buddyHistory.protection.push_back(data.buddyHistory.getBuddyProtectionFromIndex(data.buddyHistory.protectionIndex.size() - 1));
+  data.buddyHistory.scripts.push_back(Scripts{});
+  data.buddyHistory.scripts.back().amount = jsonData.at("scripts_amount");
+  // go through each script and get the id and name
+  for(auto& allScripts : jsonData.items()) {
+    if(allScripts.key() != "scripts") {
+      continue;
+    }
+
+    json scripts = allScripts.value();
+    for(auto& script : scripts.items()) {
+      json scriptData = script.value();
+      data.buddyHistory.scripts.back().names.push_back(scriptData.at("name"));
+      data.buddyHistory.scripts.back().ids.push_back(scriptData.at("id"));
+    }
+  }
 }
 void updateActiveScripts() {
   string apiCall = "setMemberScripts&scripts=[";

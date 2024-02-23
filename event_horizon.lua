@@ -145,6 +145,11 @@ local function getMemberAsBuddy(username)
 
 	local member = {}
 
+	if apiCall.message ~= nil then
+		member["message"] = apiCall.message
+		goto continue
+	end
+
 	member["username"] = apiCall.username
 	member["register_date"] = apiCall.register_date
 	member["last_activity"] = apiCall.last_activity
@@ -168,7 +173,11 @@ local function getMemberAsBuddy(username)
 		script["team"] = nil
 	end
 
+	member["scripts_amount"] = #apiCall["scripts"]
 	member["scripts"] = apiCall["scripts"]
+	member["message"] = "success"
+
+	::continue::
 	return json.encode(member)
 end
 

@@ -104,14 +104,38 @@ struct Posts {
 };
 
 struct BuddyHistory {
+  bool failed;
   std::vector<std::string> username;
   std::vector<int> registerDate;
+  std::vector<std::chrono::year_month_day> registerYmd;
   std::vector<int> lastActivity;
+  std::vector<std::chrono::year_month_day> activityYmd;
   std::vector<int> sessionExpiry;
+  std::vector<std::chrono::year_month_day> expiryYmd;
   std::vector<int> posts;
   std::vector<int> score;
   std::vector<int> protectionIndex;
+  std::vector<std::string> protection;
   std::vector<Scripts> scripts;
+
+  std::string getBuddyProtectionFromIndex(int index) {
+    std::string prot;
+    switch(protectionIndex.at(index)) {
+      case 0:
+        prot = "Standard";
+        break;
+      case 1:
+        prot = "Zombie/IPC";
+        break;
+      case 2:
+        prot = "Kernel";
+        break;
+      default:
+        prot = "mystery protection???";
+        break;
+    }
+    return prot;
+  }
 };
 
 struct Information {
