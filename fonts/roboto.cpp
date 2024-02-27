@@ -1,7 +1,7 @@
 // File: 'Roboto-Medium.ttf' (168644 bytes)
 // Exported using binary_to_compressed_c.cpp
-static const unsigned int roboto_compressed_size = 118513;
-static const unsigned int roboto_compressed_data[118516/4] =
+extern const unsigned int roboto_compressed_size = 118513;
+extern const unsigned int roboto_compressed_data[118516/4] =
 {
     0x0000bc57, 0x00000000, 0xc4920200, 0x00000400, 0x00010025, 0x82120000, 0x043e0804, 0x44472000, 0x42b44645, 0x020082b0, 0x0000a015, 0x50476202, 
     0xf0ab534f, 0x02006986, 0x00000418, 0x53472e65, 0x817a4255, 0x02007785, 0x0000347d, 0x534f9015, 0xe697322f, 0x0200bab1, 0x45823c03, 0x6d63603c, 

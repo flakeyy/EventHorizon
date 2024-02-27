@@ -34,5 +34,7 @@ add_executable(${PROJECT_NAME}
         menu/data.h
         menu/vulkan.cpp
         vulkan/vulkan.h
+        fonts/roboto.h
+        fonts/roboto.cpp
 )
 target_link_libraries(${PROJECT_NAME} ${LIBRARIES})
