@@ -3,6 +3,16 @@ project(fmenu)
 include(FetchContent)
 
 set(CMAKE_CXX_STANDARD 20)
+
+# HEY! WHAT THE FUCK IS GOING ON HERE!
+# I JUST WANT STATICALLY LINKED LIBRARIES ON WINDOWS AND NOT LINUX
+# IS THAT SO MUCH TO ASK???
+#if(WIN32)
+#    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static -static-libgcc -static-libstdc++")
+#else()
+#    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS}")
+#endif()
+
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static -static-libgcc -static-libstdc++")
 
 set(GLFW_DIR glfw-3.3.9)
