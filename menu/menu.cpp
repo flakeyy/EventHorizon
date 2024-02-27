@@ -27,6 +27,7 @@ const char* themes[] = {"Event Horizon","Classic", "2003 Steam", "Comfy", "Dark"
 static const char* themeSelected = themes[0];
 const char* dateFormats[] = {"MM/DD/YYYY", "DD/MM/YYYY"};
 static const char* dateFormatSelected = dateFormats[0];
+static char* searchBar;
 static seconds duration(3);
 static auto startTimer = std::chrono::high_resolution_clock::now(), endTimer = startTimer + duration;
 Information data;
@@ -834,6 +835,9 @@ void renderScriptsTab() {
     ImGui::Text("Fetching cloud scripts...");
     return;
   }
+  ImGui::Text("%s", searchBar);
+  ImGui::InputTextWithHint("", "Search", searchBar, 64, ImGuiInputTextFlags_AlwaysOverwrite);
+  ImGui::Separator();
   ImGui::Columns(2, nullptr);
 
   if(scriptChangesMade) {
