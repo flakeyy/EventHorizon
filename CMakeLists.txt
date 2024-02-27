@@ -3,11 +3,7 @@ project(fmenu)
 include(FetchContent)
 
 set(CMAKE_CXX_STANDARD 20)
-if(WIN32)
-    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static -static-libgcc -static-libstdc++")
-else()
-    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS}")
-endif()
+set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static -static-libgcc -static-libstdc++")
 
 set(GLFW_DIR glfw-3.3.9)
 option(GLFW_BUILD_EXAMPLES "Build the GLFW example programs" OFF)

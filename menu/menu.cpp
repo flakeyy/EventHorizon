@@ -703,7 +703,7 @@ void renderGeneralTab() {
     return;
   }
 
-  ImGui::Text( "Hello, %s!", data.member.username.c_str());
+  ImGui::Text( "Hellooooo, %s!", data.member.username.c_str());
   ImGui::Separator();
 
   ImGui::Columns(2, nullptr);
