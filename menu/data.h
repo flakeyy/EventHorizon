@@ -84,6 +84,7 @@ struct Scripts {
   std::vector<std::string> lastUpdated;
   std::vector<std::chrono::year_month_day> lastUpdatedYmd;
   std::vector<bool> isActive;
+  std::vector<bool> visible;
 };
 
 struct Projects {

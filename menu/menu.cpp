@@ -27,7 +27,7 @@ const char* themes[] = {"Event Horizon","Classic", "2003 Steam", "Comfy", "Dark"
 static const char* themeSelected = themes[0];
 const char* dateFormats[] = {"MM/DD/YYYY", "DD/MM/YYYY"};
 static const char* dateFormatSelected = dateFormats[0];
-static char* searchBar;
+static char searchBar[32] = {0};
 static seconds duration(3);
 static auto startTimer = std::chrono::high_resolution_clock::now(), endTimer = startTimer + duration;
 Information data;
@@ -40,7 +40,7 @@ bool isLinux = false;
 
 // function declarations
 void renderGeneralTab(), renderScriptsTab(), renderFC2TTab(), renderTeamsTab(), renderConfigurationTab(), renderSteamTab(), renderPerksTab(), renderSettingsTab(),
-showApplyButton(), refreshCache(), asyncCacheTasks(), getMemberAsBuddy(string username), updateActiveScripts(), updateActiveProjects();
+showApplyButton(), refreshCache(), asyncCacheTasks(), getMemberAsBuddy(string username), updateActiveScripts(), updateActiveProjects(), checkSearchBarVisibility();
 string getYMDAsFormatted(day day, month month, year year);
 
 // styles
@@ -703,7 +703,7 @@ void renderGeneralTab() {
     return;
   }
 
-  ImGui::Text( "Hellooooo, %s!", data.member.username.c_str());
+  ImGui::Text( "Hello, %s!", data.member.username.c_str());
   ImGui::Separator();
 
   ImGui::Columns(2, nullptr);
@@ -753,7 +753,6 @@ void renderGeneralTab() {
       ImGui::Text("You have no cloud scripts enabled.");
     }
   }
-
 
   if(projectChangesMade) {
     ImGui::SeparatorText("Active FC2T Projects *");
@@ -835,8 +834,8 @@ void renderScriptsTab() {
     ImGui::Text("Fetching cloud scripts...");
     return;
   }
-  ImGui::Text("%s", searchBar);
-  ImGui::InputTextWithHint("", "Search", searchBar, 64, ImGuiInputTextFlags_AlwaysOverwrite);
+  ImGui::InputText("Search", searchBar, 32, ImGuiInputTextFlags_None);
+  checkSearchBarVisibility();
   ImGui::Separator();
   ImGui::Columns(2, nullptr);
 
@@ -848,7 +847,7 @@ void renderScriptsTab() {
   }
 
   for(int i = 0; i < data.scripts.amount; i++) {
-    if(!data.scripts.isActive.at(i)) {
+    if(!data.scripts.isActive.at(i) || !data.scripts.visible.at(i)) {
       continue;
     }
     anyScriptsEnabled = true;
@@ -867,7 +866,7 @@ void renderScriptsTab() {
     }
   }
 
-  if(!anyScriptsEnabled) {
+  if(!anyScriptsEnabled && strlen(searchBar) <= 0) {
     ImGui::Text("You have no cloud scripts enabled.");
   }
 
@@ -884,6 +883,9 @@ void renderScriptsTab() {
   }
   else {
     for (int i = 0; i < data.scripts.amount; i++) {
+      if(!data.scripts.visible.at(i)) {
+        continue;
+      }
       string label = data.scripts.names.at(i) + "##all_scripts";
       if (ImGui::CollapsingHeader(label.c_str(), ImGuiTreeNodeFlags_None)) {
         bool is_active = data.scripts.isActive.at(i);
@@ -1222,6 +1224,23 @@ string getYMDAsFormatted(day day, month month, year year) {
 
   return formattedString;
 }
+void checkSearchBarVisibility() {
+  if(strlen(searchBar) <= 0) {
+    for(int i = 0; i < data.scripts.amount; i++) {
+      data.scripts.visible.at(i) = true;
+    }
+    return;
+  }
+
+  for(int i = 0; i < data.scripts.amount; i++) {
+    if(data.scripts.names.at(i).find(searchBar) == string::npos) {
+      data.scripts.visible.at(i) = false;
+    }
+    else {
+      data.scripts.visible.at(i) = true;
+    }
+  }
+}
 void showApplyButton() {
   if(asyncFinished && loadingFinished) {
     if(!ready) {
@@ -1308,6 +1327,7 @@ void asyncCacheTasks() {
     data.scripts.lastUpdatedYmd.push_back(std::chrono::floor<days>(system_clock::from_time_t(std::stoi(data.scripts.lastUpdated.at(i)))));
     data.scripts.updateNotes.push_back(jsonData.at("update_notes"));
     data.scripts.isActive.push_back(jsonData.at("active"));
+    data.scripts.visible.push_back(true);
   }
 
   for(int i = 0; i < data.projects.amount; i++) {
