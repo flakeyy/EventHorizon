@@ -22,7 +22,7 @@ using std::chrono::year_month_day;
 using std::chrono::high_resolution_clock;
 using json = nlohmann::json;
 
-bool ranFirstTimeChecks = false, ready = true, asyncFinished = false, loadingFinished = false, scriptChangesMade = false, projectChangesMade = false, isLinux = false;
+bool ranFirstTimeChecks = false, ready = true, asyncFinished = false, loadingFinished = false, scriptChangesMade = false, projectChangesMade = false;
 const char* themes[] = {"Event Horizon","Classic", "2003 Steam", "Comfy", "Dark", "Future Dark", "Cherry"};
 static const char* themeSelected = themes[0];
 const char* dateFormats[] = {"MM/DD/YYYY", "DD/MM/YYYY"};
@@ -32,7 +32,9 @@ static auto startTimer = std::chrono::high_resolution_clock::now(), endTimer = s
 Information data;
 
 #ifdef __linux__
-isLinux = true;
+bool isLinux = true;
+#else
+bool isLinux = false;
 #endif
 
 // function declarations
