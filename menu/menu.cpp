@@ -22,7 +22,7 @@ using std::chrono::year_month_day;
 using std::chrono::high_resolution_clock;
 using json = nlohmann::json;
 
-bool ranFirstTimeChecks = false, ready = true, asyncFinished = false, loadingFinished = false, scriptChangesMade = false, projectChangesMade = false;
+bool ranFirstTimeChecks = false, ready = true, asyncFinished = false, loadingFinished = false, scriptChangesMade = false, projectChangesMade = false, isLinux = false;
 const char* themes[] = {"Event Horizon","Classic", "2003 Steam", "Comfy", "Dark", "Future Dark", "Cherry"};
 static const char* themeSelected = themes[0];
 const char* dateFormats[] = {"MM/DD/YYYY", "DD/MM/YYYY"};
@@ -30,6 +30,10 @@ static const char* dateFormatSelected = dateFormats[0];
 static seconds duration(3);
 static auto startTimer = std::chrono::high_resolution_clock::now(), endTimer = startTimer + duration;
 Information data;
+
+#ifdef __linux__
+isLinux = true;
+#endif
 
 // function declarations
 void renderGeneralTab(), renderScriptsTab(), renderFC2TTab(), renderTeamsTab(), renderConfigurationTab(), renderSteamTab(), renderPerksTab(), renderSettingsTab(),
@@ -1238,7 +1242,6 @@ void refreshCache() {
   thread async(asyncCacheTasks);
   async.detach();
 }
-
 void asyncCacheTasks() {
   asyncFinished = false;
 
@@ -1269,6 +1272,11 @@ void asyncCacheTasks() {
   data.scripts.amount = fc2::call<int>("eh_scripts_amount", FC2_LUA_TYPE_INT);
   data.projects.amount = fc2::call<int>("eh_fc2t_amount", FC2_LUA_TYPE_INT);
   data.posts.amount = fc2::call<int>("eh_posts_amount", FC2_LUA_TYPE_INT);
+
+  // there are no protection levels for linux.
+  if(isLinux) {
+    data.member.protection = "Linux";
+  }
 
   loadingFinished = true;
 
