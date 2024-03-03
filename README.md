@@ -5,5 +5,4 @@
 ### Todo
 * Make Teams, and Configuration functionality work (api request too big or something)
 * Settings persistence (probably thru Lua configuration)
-* XP Graph that shows daily xp gain over the last week.
 * Probably other stuff I'm not remembering.
