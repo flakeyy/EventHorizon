@@ -135,6 +135,10 @@ void setStyleEventHorizon() {
   style.Colors[ImGuiCol_NavWindowingHighlight] = ImVec4(1.0f, 1.0f, 1.0f, 0.699999988079071f);
   style.Colors[ImGuiCol_NavWindowingDimBg] = ImVec4(0.800000011920929f, 0.800000011920929f, 0.800000011920929f, 0.2000000029802322f);
   style.Colors[ImGuiCol_ModalWindowDimBg] = ImVec4(0.800000011920929f, 0.800000011920929f, 0.800000011920929f, 0.3499999940395355f);
+
+  ImPlotStyle& plotStyle = ImPlot::GetStyle();
+  ImVec4* plotColors = plotStyle.Colors;
+  plotColors[ImPlotCol_Fill] = ImVec4(0.5803921818733215f, 0.3725490272045135f, 0.05882352963089943f, 1.0f);
 }
 void setStyleClassic() {
   // Classic style by ocornut from ImThemes
@@ -224,6 +228,10 @@ void setStyleClassic() {
   style.Colors[ImGuiCol_NavWindowingHighlight] = ImVec4(1.0f, 1.0f, 1.0f, 0.699999988079071f);
   style.Colors[ImGuiCol_NavWindowingDimBg] = ImVec4(0.800000011920929f, 0.800000011920929f, 0.800000011920929f, 0.2000000029802322f);
   style.Colors[ImGuiCol_ModalWindowDimBg] = ImVec4(0.2000000029802322f, 0.2000000029802322f, 0.2000000029802322f, 0.3499999940395355f);
+
+  ImPlotStyle& plotStyle = ImPlot::GetStyle();
+  ImVec4* plotColors = plotStyle.Colors;
+  plotColors[ImPlotCol_Fill] = ImVec4(0.4588235318660736f, 0.5372549295425415f, 0.800000011920929f, 1.0f);
 }
 void setStyleClassicSteam() {
   // Classic Steam style by metasprite from ImThemes
@@ -313,6 +321,10 @@ void setStyleClassicSteam() {
   style.Colors[ImGuiCol_NavWindowingHighlight] = ImVec4(1.0f, 1.0f, 1.0f, 0.699999988079071f);
   style.Colors[ImGuiCol_NavWindowingDimBg] = ImVec4(0.800000011920929f, 0.800000011920929f, 0.800000011920929f, 0.2000000029802322f);
   style.Colors[ImGuiCol_ModalWindowDimBg] = ImVec4(0.800000011920929f, 0.800000011920929f, 0.800000011920929f, 0.3499999940395355f);
+
+  ImPlotStyle& plotStyle = ImPlot::GetStyle();
+  ImVec4* plotColors = plotStyle.Colors;
+  plotColors[ImPlotCol_Fill] = ImVec4(0.5372549295425415f, 0.5686274766921997f, 0.5098039507865906f, 1.0f);
 }
 void setStyleComfy() {
   // Comfy style by Giuseppe from ImThemes
@@ -402,6 +414,10 @@ void setStyleComfy() {
   style.Colors[ImGuiCol_NavWindowingHighlight] = ImVec4(1.0f, 1.0f, 1.0f, 0.699999988079071f);
   style.Colors[ImGuiCol_NavWindowingDimBg] = ImVec4(0.800000011920929f, 0.800000011920929f, 0.800000011920929f, 0.2000000029802322f);
   style.Colors[ImGuiCol_ModalWindowDimBg] = ImVec4(0.800000011920929f, 0.800000011920929f, 0.800000011920929f, 0.3499999940395355f);
+
+  ImPlotStyle& plotStyle = ImPlot::GetStyle();
+  ImVec4* plotColors = plotStyle.Colors;
+  plotColors[ImPlotCol_Fill] = ImVec4(0.8156862854957581f, 0.772549033164978f, 0.9647058844566345f, 1.0f);
 }
 void setStyleDark() {
   // Dark style by dougbinks from ImThemes
@@ -491,6 +507,10 @@ void setStyleDark() {
   style.Colors[ImGuiCol_NavWindowingHighlight] = ImVec4(1.0f, 1.0f, 1.0f, 0.699999988079071f);
   style.Colors[ImGuiCol_NavWindowingDimBg] = ImVec4(0.800000011920929f, 0.800000011920929f, 0.800000011920929f, 0.2000000029802322f);
   style.Colors[ImGuiCol_ModalWindowDimBg] = ImVec4(0.800000011920929f, 0.800000011920929f, 0.800000011920929f, 0.3499999940395355f);
+
+  ImPlotStyle& plotStyle = ImPlot::GetStyle();
+  ImVec4* plotColors = plotStyle.Colors;
+  plotColors[ImPlotCol_Fill] = ImVec4(0.05882352963089943f, 0.529411792755127f, 0.9764705896377563f, 1.0f);
 }
 void setStyleFutureDark() {
   // Future Dark style by rewrking from ImThemes
@@ -580,6 +600,10 @@ void setStyleFutureDark() {
   style.Colors[ImGuiCol_NavWindowingHighlight] = ImVec4(0.4980392158031464f, 0.5137255191802979f, 1.0f, 1.0f);
   style.Colors[ImGuiCol_NavWindowingDimBg] = ImVec4(0.196078434586525f, 0.1764705926179886f, 0.5450980663299561f, 0.501960813999176f);
   style.Colors[ImGuiCol_ModalWindowDimBg] = ImVec4(0.196078434586525f, 0.1764705926179886f, 0.5450980663299561f, 0.501960813999176f);
+
+  ImPlotStyle& plotStyle = ImPlot::GetStyle();
+  ImVec4* plotColors = plotStyle.Colors;
+  plotColors[ImPlotCol_Fill] = ImVec4(0.2352941185235977f, 0.2156862765550613f, 0.5960784554481506f, 1.0f);
 }
 void setStyleCherry() {
   // Soft Cherry style by Patitotective from ImThemes
@@ -669,6 +693,10 @@ void setStyleCherry() {
   style.Colors[ImGuiCol_NavWindowingHighlight] = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
   style.Colors[ImGuiCol_NavWindowingDimBg] = ImVec4(0.800000011920929f, 0.800000011920929f, 0.800000011920929f, 1.0f);
   style.Colors[ImGuiCol_ModalWindowDimBg] = ImVec4(0.800000011920929f, 0.800000011920929f, 0.800000011920929f, 0.300000011920929f);
+
+  ImPlotStyle& plotStyle = ImPlot::GetStyle();
+  ImVec4* plotColors = plotStyle.Colors;
+  plotColors[ImPlotCol_Fill] = ImVec4(0.4549019634723663f, 0.196078434586525f, 0.2980392277240753f, 1.0f);
 }
 void selectStyle(int styleIndex) {
   switch(styleIndex) {
@@ -817,7 +845,6 @@ void renderGeneralTab() {
   }
 
   ImGui::SeparatorText("XP Chart");
-  ImPlot::CreateContext();
   if(ImPlot::BeginPlot("##XPHistory")) {
     // if it aint broke...
     const char* xpDates[7] = {data.member.xpHistoryDates[0], data.member.xpHistoryDates[1], data.member.xpHistoryDates[2], data.member.xpHistoryDates[3], data.member.xpHistoryDates[4], data.member.xpHistoryDates[5], data.member.xpHistoryDates[6]};
@@ -1316,9 +1343,7 @@ void asyncCacheTasks() {
     data.member.xpHistoryValues[i] = jsonData.at("xp");
     std::chrono::year_month_day timestampYmd = std::chrono::floor<days>(system_clock::from_time_t(data.member.xpHistoryTimestamps[i]));
     string xpDate = getYMDAsFormatted(timestampYmd.day(), timestampYmd.month(), timestampYmd.year());
-    printf("%s\n",xpDate.c_str());
     strcpy(data.member.xpHistoryDates[i], xpDate.c_str());
-//    data.member.xpHistoryDates[i] = xpDate.c_str();
   }
 
   data.perks.amount = fc2::call<int>("eh_perks_amount", FC2_LUA_TYPE_INT);
@@ -1469,6 +1494,7 @@ auto vulkan::on_render(ImGuiIO &io) -> void {
   }
 
   if(!ranFirstTimeChecks) {
+    ImPlot::CreateContext();
     //fc2::call<bool>("eh_refresh_cache", FC2_LUA_TYPE_NONE);
     refreshCache();
     setStyleEventHorizon();
