@@ -5,4 +5,3 @@
 ### Todo
 * Make Teams, and Configuration functionality work (api request too big or something)
 * Settings persistence (probably thru Lua configuration)
-* Probably other stuff I'm not remembering.
