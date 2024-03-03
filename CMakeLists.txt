@@ -46,5 +46,9 @@ add_executable(${PROJECT_NAME}
         vulkan/vulkan.h
         fonts/roboto.h
         fonts/roboto.cpp
+        imgui/implot/implot.h
+        imgui/implot/implot.cpp
+        imgui/implot/implot_internal.h
+        imgui/implot/implot_items.cpp
 )
 target_link_libraries(${PROJECT_NAME} ${LIBRARIES})

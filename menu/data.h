@@ -14,6 +14,9 @@ struct Member {
   int score;
   int unreadConversations;
   int unreadAlerts;
+  int xpHistoryTimestamps[7];
+  int xpHistoryValues[7];
+  char xpHistoryDates[7][16];
   std::string username;
   std::string license;
   std::string astrology;

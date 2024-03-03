@@ -5,9 +5,11 @@
 #include <unistd.h>
 #include <thread>
 #include "vulkan.h"
+#include "data.h"
+#include "implot/implot.h"
+#include "implot/implot_internal.h"
 #include "../lib/json.hpp"
 #include "../lib/fc2.hpp"
-#include "data.h"
 
 using std::vector;
 using std::string;
@@ -28,6 +30,7 @@ static const char* themeSelected = themes[0];
 const char* dateFormats[] = {"MM/DD/YYYY", "DD/MM/YYYY"};
 static const char* dateFormatSelected = dateFormats[0];
 static char searchBar[32] = {0};
+static const double xpPos[7] = {0,1,2,3,4,5,6};
 static seconds duration(3);
 static auto startTimer = std::chrono::high_resolution_clock::now(), endTimer = startTimer + duration;
 Information data;
@@ -812,6 +815,18 @@ void renderGeneralTab() {
   if(data.perks.lootRolled) {
     ImGui::Text("%s", data.perks.rollApiMessage.c_str());
   }
+
+  ImGui::SeparatorText("XP Chart");
+  ImPlot::CreateContext();
+  if(ImPlot::BeginPlot("##XPHistory")) {
+    // if it aint broke...
+    const char* xpDates[7] = {data.member.xpHistoryDates[0], data.member.xpHistoryDates[1], data.member.xpHistoryDates[2], data.member.xpHistoryDates[3], data.member.xpHistoryDates[4], data.member.xpHistoryDates[5], data.member.xpHistoryDates[6]};
+    ImPlot::SetupAxes(nullptr, nullptr, ImPlotAxisFlags_Invert | ImPlotAxisFlags_NoGridLines | ImPlotAxisFlags_AutoFit, ImPlotAxisFlags_AutoFit);
+    ImPlot::SetupAxisTicks(ImAxis_X1, xpPos, 7, xpDates);
+    ImPlot::PlotBars("##XPGain",data.member.xpHistoryValues,7,0.7,0);
+    ImPlot::EndPlot();
+  }
+
   ImGui::NextColumn();
 
   ImGui::SeparatorText("Recent Forum Posts");
@@ -1128,7 +1143,7 @@ void renderPerksTab() {
   }
   ImGui::Columns();
 }
-void renderBuddyTab() {
+void renderBuddyTab()   {
   // only show if member is a buddy or VIP
   if(data.member.buddy == 0 || data.member.levelIndex >= 3) {
     ImGui::Text("This tab is for buddies & VIP only.");
@@ -1293,6 +1308,19 @@ void asyncCacheTasks() {
   data.session.startYmd = std::chrono::floor<days>(system_clock::from_time_t(data.session.started));
   data.session.expiryYmd = std::chrono::floor<days>(system_clock::from_time_t(data.session.expiry));
 
+  // get xp history information
+  for(int i = 0; i < 7; i++) {
+    string luaData = "{\"value\": " + std::to_string(i) + "}";
+    jsonData = json::parse(fc2::call<string>("eh_get_xp_history", FC2_LUA_TYPE_STRING, luaData));
+    data.member.xpHistoryTimestamps[i] = jsonData.at("timestamp");
+    data.member.xpHistoryValues[i] = jsonData.at("xp");
+    std::chrono::year_month_day timestampYmd = std::chrono::floor<days>(system_clock::from_time_t(data.member.xpHistoryTimestamps[i]));
+    string xpDate = getYMDAsFormatted(timestampYmd.day(), timestampYmd.month(), timestampYmd.year());
+    printf("%s\n",xpDate.c_str());
+    strcpy(data.member.xpHistoryDates[i], xpDate.c_str());
+//    data.member.xpHistoryDates[i] = xpDate.c_str();
+  }
+
   data.perks.amount = fc2::call<int>("eh_perks_amount", FC2_LUA_TYPE_INT);
   data.scripts.amount = fc2::call<int>("eh_scripts_amount", FC2_LUA_TYPE_INT);
   data.projects.amount = fc2::call<int>("eh_fc2t_amount", FC2_LUA_TYPE_INT);
@@ -1303,8 +1331,10 @@ void asyncCacheTasks() {
     data.member.protection = "Linux";
   }
 
+  // we are finished loading basic information.
   loadingFinished = true;
 
+  // get information for all perks
   for(int i = 0; i < data.perks.amount; i++) {
     string luaData = "{\"value\": " + std::to_string(i) + "}";
     json jsonData = json::parse(fc2::call<string>("eh_get_perk_json", FC2_LUA_TYPE_STRING, luaData));
