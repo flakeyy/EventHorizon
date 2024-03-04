@@ -1,4 +1,3 @@
-#define FC2_TEAM_UNIVERSE4
 #include <chrono>
 #include <vector>
 #include <iostream>

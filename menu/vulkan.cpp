@@ -1,4 +1,3 @@
-
 #include "vulkan.h"
 #include "../fonts/roboto.h"
 #include "../imgui/backends/imgui_impl_glfw.h"
