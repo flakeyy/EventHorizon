@@ -23,7 +23,7 @@ using std::chrono::year_month_day;
 using std::chrono::high_resolution_clock;
 using json = nlohmann::json;
 
-bool ranFirstTimeChecks = false, ready = true, asyncFinished = false, loadingFinished = false, scriptChangesMade = false, projectChangesMade = false;
+bool ranFirstTimeChecks = false, ready = true, asyncFinished = false, loadingFinished = false, scriptChangesMade = false, projectChangesMade = false, bricked = false;
 const char* themes[] = {"Event Horizon","Classic", "2003 Steam", "Comfy", "Dark", "Future Dark", "Cherry"};
 static const char* themeSelected = themes[0];
 const char* dateFormats[] = {"MM/DD/YYYY", "DD/MM/YYYY"};
@@ -42,7 +42,7 @@ bool isLinux = false;
 
 // function declarations
 void renderGeneralTab(), renderScriptsTab(), renderFC2TTab(), renderTeamsTab(), renderConfigurationTab(), renderSteamTab(), renderPerksTab(), renderSettingsTab(),
-showApplyButton(), refreshCache(), asyncCacheTasks(), getMemberAsBuddy(string username), updateActiveScripts(), updateActiveProjects(), checkSearchBarVisibility();
+showApplyButton(), refreshCache(), asyncCacheTasks(), getMemberAsBuddy(string username), updateActiveScripts(), updateActiveProjects(), checkSearchBarVisibility(), ehPrint(char* message[]), ehPrint(string message);
 string getYMDAsFormatted(day day, month month, year year);
 
 // styles
@@ -733,6 +733,11 @@ void renderGeneralTab() {
     return;
   }
 
+  if(bricked) {
+    ImGui::Text("Couldn't load json data due to an unknown error. Try restarting");
+    return;
+  }
+
   ImGui::Text( "Hello, %s!", data.member.username.c_str());
   ImGui::Separator();
 
@@ -1071,7 +1076,7 @@ void renderConfigurationTab() {
   }
 
 //  if(!ready) {
-//    ImGui::Text("Refreshing Universe4, please wait.");
+//    ImGui::Text("Refreshing scripts, please wait.");
 //    return;
 //  }
 //
@@ -1285,7 +1290,7 @@ void checkSearchBarVisibility() {
 void showApplyButton() {
   if(asyncFinished && loadingFinished) {
     if(!ready) {
-      ImGui::Text("Refreshing Universe4, please wait.");
+      ImGui::Text("Refreshing scripts, please wait.");
       if(fc2::call<bool>("eh_ready", FC2_LUA_TYPE_BOOLEAN)) {
         refreshCache();
         ready = true;
@@ -1415,7 +1420,12 @@ void asyncCacheTasks() {
     steam_personas.push_back(fc2::call<string>("eh_get_steam_persona", FC2_LUA_TYPE_STRING, luaData));
   }*/
 
+  if(data.member.username.empty()) {
+    bricked = true;
+    ehPrint("Couldn't load json data due to an unknown error. Try restarting");
+  }
 
+  ehPrint("loading finished.");
   asyncFinished = true;
 }
 void getMemberAsBuddy(string username) {
@@ -1468,7 +1478,7 @@ void updateActiveScripts() {
   }
   apiCall.append("]");
   string apiResponse = fc2::api(apiCall);
-  printf("%s\n", apiResponse.c_str());
+  ehPrint(apiResponse);
 }
 void updateActiveProjects() {
   string apiCall = "setMemberProjects&projects=[";
@@ -1482,12 +1492,18 @@ void updateActiveProjects() {
   }
   apiCall.append("]");
   string apiResponse = fc2::api(apiCall);
-  printf("%s\n", apiResponse.c_str());
+  ehPrint(apiResponse);
+}
+void ehPrint(char* message[]) {
+  printf("[Event Horizon] %s\n", message);
+}
+void ehPrint(string message) {
+  printf("[Event Horizon] %s\n", message.c_str());
 }
 
 auto vulkan::on_render(ImGuiIO &io) -> void {
   if(fc2::get_error() != FC2_TEAM_ERROR_NO_ERROR) {
-    puts("Universe4 is not running anymore. Terminating.");
+    puts("No FC2 solution is running. Terminating.");
     sleep(3);
     std::exit(1);
   }
@@ -1526,6 +1542,10 @@ auto vulkan::on_render(ImGuiIO &io) -> void {
   if(ImGui::BeginTabItem("General")) {
     renderGeneralTab();
     ImGui::EndTabItem();
+  }
+
+  if(bricked) {
+    ImGui::End();
   }
 
   // Scripts Tab
